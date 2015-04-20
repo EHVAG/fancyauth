@@ -185,3 +185,6 @@ FakesAssemblies/
 # Python / Django
 *.pyc
 local_settings.py
+
+# userprefs belong to the user
+*.userprefs
