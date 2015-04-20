@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>Fancyauth.API</id>
+    <version>1.0</version>
+    <title>Fancyauth API</title>
+    <authors>main</authors>
+    <owners>main</owners>
+    <projectUrl>https://github.com/EHVAG/fancyauth</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Generic high level fancyauth API.</description>
+    <releaseNotes>Initial release.</releaseNotes>
+    <copyright>Copyright 2015 main()</copyright>
+    <tags>fancyauth murmur mumble</tags>
+  </metadata>
+  <files>
+    <file src="bin/Release/Fancyauth.API.dll" target="lib\net45" />
+    <file src="bin/Release/Fancyauth.API.xml" target="lib\net45" />
+  </files>
+</package>
