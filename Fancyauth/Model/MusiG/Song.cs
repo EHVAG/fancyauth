@@ -22,6 +22,9 @@ namespace Fancyauth.Model.MusiG
         public virtual Album Album { get; set; }
 
         [Required]
+        public virtual Genre Genre { get; set; }
+
+        [Required]
         public virtual Interpret Interpret { get; set; }
 
         public virtual IEnumerable<Interpret> AdditionalInterprets { get; set; }

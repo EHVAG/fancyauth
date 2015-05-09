@@ -71,6 +71,10 @@
     <Compile Include="Migrations\201505091633348_AddMusiG.Designer.cs">
       <DependentUpon>201505091633348_AddMusiG.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201505091646241_MusiG_SongsHaveGenres.cs" />
+    <Compile Include="Migrations\201505091646241_MusiG_SongsHaveGenres.Designer.cs">
+      <DependentUpon>201505091646241_MusiG_SongsHaveGenres.cs</DependentUpon>
+    </Compile>
     <Compile Include="Model\MusiG\Album.cs" />
     <Compile Include="Model\MusiG\Genre.cs" />
     <Compile Include="Model\MusiG\Interpret.cs" />
@@ -143,6 +147,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201505091633348_AddMusiG.resx">
       <DependentUpon>201505091633348_AddMusiG.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505091646241_MusiG_SongsHaveGenres.resx">
+      <DependentUpon>201505091646241_MusiG_SongsHaveGenres.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
