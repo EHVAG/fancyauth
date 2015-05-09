@@ -63,9 +63,9 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\201505091541469_InitSchema.cs" />
-    <Compile Include="Migrations\201505091541469_InitSchema.Designer.cs">
-      <DependentUpon>201505091541469_InitSchema.cs</DependentUpon>
+    <Compile Include="Migrations\201505091557008_InitSchema.cs" />
+    <Compile Include="Migrations\201505091557008_InitSchema.Designer.cs">
+      <DependentUpon>201505091557008_InitSchema.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -128,8 +128,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201505091541469_InitSchema.resx">
-      <DependentUpon>201505091541469_InitSchema.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201505091557008_InitSchema.resx">
+      <DependentUpon>201505091557008_InitSchema.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>

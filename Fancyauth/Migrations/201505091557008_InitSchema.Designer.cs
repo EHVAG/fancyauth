@@ -13,12 +13,12 @@ namespace Fancyauth.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201505091541469_InitSchema"; }
+            get { return "201505091557008_InitSchema"; }
         }
         
         string IMigrationMetadata.Source
         {
-            get { return null; }
+            get { return Resources.GetString("Source"); }
         }
         
         string IMigrationMetadata.Target
