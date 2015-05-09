@@ -13,7 +13,7 @@ namespace Fancyauth.Migrations
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationsEnabled = false;
             AutomaticMigrationDataLossAllowed = false;
 
             SetSqlGenerator("Npgsql", new Npgsql.NpgsqlMigrationSqlGenerator());
