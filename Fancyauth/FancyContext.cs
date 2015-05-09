@@ -2,6 +2,7 @@
 using System.Data.Entity;
 using System.Threading.Tasks;
 using Fancyauth.Model;
+using Fancyauth.Model.MusiG;
 
 namespace Fancyauth
 {
@@ -35,6 +36,15 @@ namespace Fancyauth
         public virtual DbSet<GuestAssociation> GuestAssociations { get; set; }
         public virtual DbSet<OfflineNotification> OfflineNotifications { get; set; }
         public virtual DbSet<LogEntry> Logs { get; set; }
+
+        #region MusiG
+        public virtual DbSet<Album> Albums { get; set; }
+        public virtual DbSet<Genre> Genres { get; set; }
+        public virtual DbSet<Interpret> Interprets { get; set; }
+        public virtual DbSet<Song> Songs { get; set; }
+        public virtual DbSet<SongRating> SongRatings { get; set; }
+        public virtual DbSet<SongSuggestion> SongSuggestions { get; set; }
+        #endregion
     }
 }
 

@@ -67,6 +67,16 @@
     <Compile Include="Migrations\201505091557008_InitSchema.Designer.cs">
       <DependentUpon>201505091557008_InitSchema.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201505091633348_AddMusiG.cs" />
+    <Compile Include="Migrations\201505091633348_AddMusiG.Designer.cs">
+      <DependentUpon>201505091633348_AddMusiG.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Model\MusiG\Album.cs" />
+    <Compile Include="Model\MusiG\Genre.cs" />
+    <Compile Include="Model\MusiG\Interpret.cs" />
+    <Compile Include="Model\MusiG\SongRating.cs" />
+    <Compile Include="Model\MusiG\Song.cs" />
+    <Compile Include="Model\MusiG\SongSuggestion.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Murmur.cs" />
@@ -130,6 +140,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201505091557008_InitSchema.resx">
       <DependentUpon>201505091557008_InitSchema.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505091633348_AddMusiG.resx">
+      <DependentUpon>201505091633348_AddMusiG.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
