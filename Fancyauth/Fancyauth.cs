@@ -12,6 +12,8 @@ using Fancyauth.Wrapped;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.X509;
+using Fancyauth.Model;
+using System.Data.Entity;
 
 namespace Fancyauth
 {
@@ -58,12 +60,92 @@ namespace Fancyauth
                 await server.AddCallback(Murmur.ServerCallbackPrxHelper.uncheckedCast(asci2));
                 await server.SetAuthenticator(Murmur.ServerAuthenticatorPrxHelper.uncheckedCast(authenticator));
 
+                await UpdateChannelModel(server);
+
                 await Task.Yield();
                 Console.WriteLine("server up");
 
                 communicator.waitForShutdown();
             } finally {
                 //communicator.destroy();
+            }
+        }
+
+        public async Task UpdateChannelModel(Server server)
+        {
+            var tree = await server.GetTree();
+            using (var context = await FancyContext.Connect())
+            using (var transact = context.Database.BeginTransaction())
+            {
+                var allChanQuery = from channel in context.Channels
+                                   join ichange in context.ChannelInfoChanges on channel.Id equals ichange.ChannelId into infoChanges
+                                   select new
+                                   {
+                                       channel,
+                                       name = infoChanges.OrderByDescending(x => x.When).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
+                                       desc = infoChanges.OrderByDescending(x => x.Description).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
+                                   };
+                var allChans = await allChanQuery.ToArrayAsync();
+
+                var hitChans = new List<Channel>();
+                var treewalk = new Queue<Murmur.Tree>();
+                treewalk.Enqueue(tree);
+                while (treewalk.Any())
+                {
+                    var current = treewalk.Dequeue();
+
+                    var dbChanBig = allChans.Where(x => x.channel.ServerId == current.c.id).SingleOrDefault();
+                    var dbChan = dbChanBig == null ? null : dbChanBig.channel;
+                    if (dbChan == null)
+                    {
+                        dbChan = context.Channels.Add(new Channel
+                        {
+                            Temporary = current.c.temporary,
+                            Parent = current.c.parent == -1 ? null : hitChans.Where(x => x.ServerId == current.c.parent).Single(),
+                            ServerId = current.c.id,
+                        });
+                        context.ChannelInfoChanges.Add(new Channel.InfoChange
+                        {
+                            Channel = dbChan,
+                            Name = current.c.name,
+                            Description = current.c.description,
+                            When = DateTime.UtcNow
+                        });
+                    }
+                    else if ((dbChanBig.name != current.c.name) || (dbChanBig.desc != current.c.description))
+                    {
+                        // existing, but modified
+                        context.ChannelInfoChanges.Add(new Channel.InfoChange
+                        {
+                            Channel = dbChan,
+                            Name = current.c.name == dbChanBig.name ? null : current.c.name,
+                            Description = current.c.description == dbChanBig.desc ? null : current.c.description,
+                            When = DateTime.UtcNow,
+                        });
+                    }
+
+                    hitChans.Add(dbChan);
+
+                    foreach (var child in current.children)
+                        treewalk.Enqueue(child);
+                }
+
+                foreach (var channel in allChans.Select(x => x.channel).Except(hitChans))
+                {
+                    channel.ServerId = null;
+
+                    context.ChannelInfoChanges.Add(new Channel.InfoChange
+                    {
+                        Channel = channel,
+                        Name = null,
+                        Description = null,
+                        When = DateTime.UtcNow,
+                    });
+                }
+
+                await context.SaveChangesAsync();
+
+                transact.Commit();
             }
         }
 

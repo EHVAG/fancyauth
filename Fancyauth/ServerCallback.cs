@@ -112,6 +112,81 @@ namespace Fancyauth
                 transact.Commit();
             }
         }
+
+        public override async Task ChannelCreated(Murmur.Channel chan)
+        {
+            using (var context = await FancyContext.Connect())
+            using (var transact = context.Database.BeginTransaction())
+            {
+                var dbchan = context.Channels.Add(new Channel
+                {
+                    Temporary = chan.temporary,
+                    Parent = context.Channels.Attach(new Channel { Id = chan.parent }),
+                    ServerId = chan.id,
+                });
+                context.ChannelInfoChanges.Add(new Channel.InfoChange
+                {
+                    Channel = dbchan,
+                    Name = chan.name,
+                    Description = chan.description,
+                    When = DateTime.UtcNow
+                });
+
+                await context.SaveChangesAsync();
+                transact.Commit();
+            }
+        }
+
+        public override async Task ChannelStateChanged(Murmur.Channel chan)
+        {
+            using (var context = await FancyContext.Connect())
+            {
+                var query = from channel in context.Channels
+                            where channel.ServerId == chan.id
+                            join ichange in context.ChannelInfoChanges on channel.Id equals ichange.ChannelId into infoChanges
+                            select new
+                            {
+                                channel,
+                                name = infoChanges.OrderByDescending(x => x.When).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
+                                desc = infoChanges.OrderByDescending(x => x.Description).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
+                            };
+                var res = await query.SingleAsync();
+                var infoChange = new Channel.InfoChange
+                {
+                    Channel = context.Channels.Attach(new Channel { Id = chan.id }),
+                    Name = chan.name == res.name ? null : chan.name,
+                    Description = chan.description == res.desc ? null : chan.description,
+                    When = DateTime.UtcNow,
+                };
+
+                if (res.channel.Parent.Id != chan.parent)
+                    res.channel.Parent = context.Channels.Attach(new Channel { Id = chan.parent });
+
+                if (infoChange.Name != null || infoChange.Description != null)
+                    context.ChannelInfoChanges.Add(infoChange);
+
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public override async Task ChannelRemoved(Murmur.Channel chan)
+        {
+            using (var context = await FancyContext.Connect())
+            {
+                var channel = await context.Channels.Where(x => x.ServerId == chan.id).SingleAsync();
+                channel.ServerId = null;
+
+                context.ChannelInfoChanges.Add(new Channel.InfoChange
+                {
+                    Channel = channel,
+                    Name = null,
+                    Description = null,
+                    When = DateTime.UtcNow,
+                });
+
+                await context.SaveChangesAsync();
+            }
+        }
     }
 }
 

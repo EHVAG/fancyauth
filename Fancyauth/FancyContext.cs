@@ -37,6 +37,9 @@ namespace Fancyauth
         public virtual DbSet<OfflineNotification> OfflineNotifications { get; set; }
         public virtual DbSet<LogEntry> Logs { get; set; }
 
+        public virtual DbSet<Channel> Channels { get; set; }
+        public virtual DbSet<Channel.InfoChange> ChannelInfoChanges { get; set; }
+
         #region MusiG
         public virtual DbSet<Album> Albums { get; set; }
         public virtual DbSet<Genre> Genres { get; set; }
