@@ -121,7 +121,7 @@ namespace Fancyauth
                 var dbchan = context.Channels.Add(new Channel
                 {
                     Temporary = chan.temporary,
-                    Parent = context.Channels.Attach(new Channel { Id = chan.parent }),
+                    Parent = await context.Channels.Where(x => x.ServerId == chan.parent).SingleAsync(),
                     ServerId = chan.id,
                 });
                 context.ChannelInfoChanges.Add(new Channel.InfoChange
