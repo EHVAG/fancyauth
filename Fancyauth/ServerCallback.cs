@@ -153,7 +153,7 @@ namespace Fancyauth
                 var res = await query.SingleAsync();
                 var infoChange = new Channel.InfoChange
                 {
-                    Channel = context.Channels.Attach(new Channel { Id = chan.id }),
+                    Channel = res.channel,
                     Name = chan.name == res.name ? null : chan.name,
                     Description = chan.description == res.desc ? null : chan.description,
                     When = DateTime.UtcNow,
