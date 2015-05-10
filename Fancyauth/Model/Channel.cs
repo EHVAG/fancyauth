@@ -24,8 +24,7 @@ namespace Fancyauth.Model
         [Table("ChannelInfoChanges")]
         public class InfoChange
         {
-            [Key, ForeignKey("Channel")]
-            public int ChannelId { get; set; }
+            public int Id { get; set; }
 
             public string Name { get; set; }
 

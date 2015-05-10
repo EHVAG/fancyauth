@@ -143,7 +143,7 @@ namespace Fancyauth
             {
                 var query = from channel in context.Channels
                             where channel.ServerId == chan.id
-                            join ichange in context.ChannelInfoChanges on channel.Id equals ichange.ChannelId into infoChanges
+                            join ichange in context.ChannelInfoChanges on channel.Id equals ichange.Channel.Id into infoChanges
                             select new
                             {
                                 channel,

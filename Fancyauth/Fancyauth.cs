@@ -78,7 +78,7 @@ namespace Fancyauth
             using (var transact = context.Database.BeginTransaction())
             {
                 var allChanQuery = from channel in context.Channels
-                                   join ichange in context.ChannelInfoChanges on channel.Id equals ichange.ChannelId into infoChanges
+                                   join ichange in context.ChannelInfoChanges on channel.Id equals ichange.Channel.Id into infoChanges
                                    select new
                                    {
                                        channel,
