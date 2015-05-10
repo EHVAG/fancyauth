@@ -147,6 +147,7 @@ namespace Fancyauth
                             select new
                             {
                                 channel,
+                                parentId = channel.Parent.ServerId,
                                 name = infoChanges.OrderByDescending(x => x.When).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
                                 desc = infoChanges.OrderByDescending(x => x.Description).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
                             };
@@ -159,8 +160,8 @@ namespace Fancyauth
                     When = DateTime.UtcNow,
                 };
 
-                if (res.channel.Parent.Id != chan.parent)
-                    res.channel.Parent = context.Channels.Attach(new Channel { Id = chan.parent });
+                if (res.parentId != chan.parent)
+                    res.channel.Parent = await context.Channels.Where(x => x.ServerId == chan.parent).SingleAsync();
 
                 if (infoChange.Name != null || infoChange.Description != null)
                     context.ChannelInfoChanges.Add(infoChange);
