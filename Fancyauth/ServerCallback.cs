@@ -149,7 +149,7 @@ namespace Fancyauth
                                 channel,
                                 parentId = channel.Parent.ServerId,
                                 name = infoChanges.OrderByDescending(x => x.When).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
-                                desc = infoChanges.OrderByDescending(x => x.Description).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
+                                desc = infoChanges.OrderByDescending(x => x.When).Select(x => x.Description).Where(x => x != null).FirstOrDefault(),
                             };
                 var res = await query.SingleAsync();
                 var infoChange = new Channel.InfoChange

@@ -83,7 +83,7 @@ namespace Fancyauth
                                    {
                                        channel,
                                        name = infoChanges.OrderByDescending(x => x.When).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
-                                       desc = infoChanges.OrderByDescending(x => x.Description).Select(x => x.Name).Where(x => x != null).FirstOrDefault(),
+                                       desc = infoChanges.OrderByDescending(x => x.When).Select(x => x.Description).Where(x => x != null).FirstOrDefault(),
                                    };
                 var allChans = await allChanQuery.ToArrayAsync();
 
