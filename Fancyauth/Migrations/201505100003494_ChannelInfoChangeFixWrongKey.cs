@@ -22,10 +22,10 @@ namespace Fancyauth.Migrations
             DropForeignKey("dbo.ChannelInfoChanges", "Channel_Id", "dbo.Channels");
             DropPrimaryKey("dbo.ChannelInfoChanges");
             DropColumn("dbo.ChannelInfoChanges", "Id");
-            AddPrimaryKey("dbo.ChannelInfoChanges", "ChannelId");
             DropIndex(table: "dbo.ChannelInfoChanges", name: "IX_Channel_Id");
             CreateIndex(table: "dbo.ChannelInfoChanges", name: "IX_ChannelId", column: "Channel_Id");
             RenameColumn(table: "dbo.ChannelInfoChanges", name: "Channel_Id", newName: "ChannelId");
+            AddPrimaryKey("dbo.ChannelInfoChanges", "ChannelId");
             AddForeignKey("dbo.ChannelInfoChanges", "ChannelId", "dbo.Channels", "Id");
         }
     }
