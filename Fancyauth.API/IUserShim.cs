@@ -6,14 +6,9 @@ namespace Fancyauth.API
     /// <summary>
     /// Represents a user.
     /// </summary>
-    public interface IUserShim
+    public interface IUserShim : IShim<IUser>
     {
         int SessionId { get; }
-
-        /// <summary>
-        /// Loads information about this user.
-        /// </summary>
-        Task<IUser> Load();
 
         /// <summary>
         /// Kicks this user with the specified reason.

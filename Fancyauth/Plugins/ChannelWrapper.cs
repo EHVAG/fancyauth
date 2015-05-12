@@ -18,13 +18,13 @@ namespace Fancyauth.Plugins
             LinkedChannels = new HashSet<IChannelShim>(channel.links.Select(x => new ChannelShim(server, x)));
         }
 
-        Task IChannel.SaveChanges()
+        Task IReadModifyWriteObject.SaveChanges()
         {
             Channel.links = LinkedChannels.Select(x => x.ChannelId).ToArray();
             return Server.SetChannelState(Channel);
         }
 
-        async Task IChannel.Refresh()
+        async Task IReadModifyWriteObject.Refresh()
         {
             Channel = await Server.GetChannelState(Channel.id);
             LinkedChannels.Clear();

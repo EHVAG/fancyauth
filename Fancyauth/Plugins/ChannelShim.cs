@@ -15,7 +15,7 @@ namespace Fancyauth.Plugins
             ChannelId = id;
         }
 
-        async Task<IChannel> IChannelShim.Load()
+        async Task<IChannel> IShim<IChannel>.Load()
         {
             return new ChannelWrapper(Server, await Server.GetChannelState(ChannelId));
         }

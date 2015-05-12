@@ -6,14 +6,11 @@ namespace Fancyauth.API
     /// <summary>
     /// Represents a channel.
     /// </summary>
-    public interface IChannelShim
+    public interface IChannelShim : IShim<IChannel>
     {
         int ChannelId { get; }
 
-        /// <summary>
-        /// Loads information about this channel.
-        /// </summary>
-        Task<IChannel> Load();
+
         /// <summary>
         /// Sends a message to this channel.
         /// </summary>

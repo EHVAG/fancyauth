@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 namespace Fancyauth.API
 {
     /// <summary>
-    /// Represents a user, including information about them.
+    /// Represents a user, including information about them. Remember to call SaveChanges()!
     /// </summary>
-    public interface IUser : IUserShim
+    public interface IUser : IUserShim, IReadModifyWriteObject
     {
         int UserId { get; }
         bool ServerMute { get; set; }
@@ -33,15 +33,6 @@ namespace Fancyauth.API
         TimeSpan IdleTime { get; }
         float AverageUdpPing { get; }
         float AverageTcpPing { get; }
-
-        /// <summary>
-        /// Saves changes made to this user.
-        /// </summary>
-        Task SaveChanges();
-        /// <summary>
-        /// Reloads information about this user, discarding all unsaved changes.
-        /// </summary>
-        Task Refresh();
     }
 }
 

@@ -31,6 +31,8 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IReadModifyWriteObject.cs" />
+    <Compile Include="IShim.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IChannel.cs" />
     <Compile Include="IFancyPlugin.cs" />

@@ -15,7 +15,7 @@ namespace Fancyauth.Plugins
             SessionId = session;
         }
 
-        async Task<IUser> IUserShim.Load()
+        async Task<IUser> IShim<IUser>.Load()
         {
             return new UserWrapper(Server, await Server.GetState(SessionId));
         }

@@ -16,12 +16,12 @@ namespace Fancyauth.Plugins
             User = user;
         }
 
-        Task IUser.SaveChanges()
+        Task IReadModifyWriteObject.SaveChanges()
         {
             return Server.SetState(User);
         }
 
-        async Task IUser.Refresh()
+        async Task IReadModifyWriteObject.Refresh()
         {
             User = await Server.GetState(User.session);
         }
