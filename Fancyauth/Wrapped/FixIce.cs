@@ -33,6 +33,13 @@ namespace Fancyauth.Wrapped
             return tcs.Task;
         }
 
+        public static Task FromAsyncVoid<TP1, TP2, TP3, TP4>(TP1 p1, TP2 p2, TP3 p3, TP4 p4, Func<TP1, TP2, TP3, TP4, Ice.AsyncCallback, object, Ice.AsyncResult> begin, Action<Ice.AsyncResult> end)
+        {
+            var tcs = new TaskCompletionSource<object>();
+            begin(p1, p2, p3, p4, GenericAsyncVoidCallback, Tuple.Create(tcs, end));
+            return tcs.Task;
+        }
+
         public static Task FromAsyncVoid<TP1, TP2, TP3, TP4, TP5>(TP1 p1, TP2 p2, TP3 p3, TP4 p4, TP5 p5,
             Func<TP1, TP2, TP3, TP4, TP5, Ice.AsyncCallback, object, Ice.AsyncResult> begin, Action<Ice.AsyncResult> end)
         {

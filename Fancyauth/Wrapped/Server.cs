@@ -62,8 +62,18 @@ namespace Fancyauth.Wrapped
         public Task RemoveChannel(int chanid) { return FixIce.FromAsyncVoid(chanid, S.begin_removeChannel, S.end_removeChannel); }
         public Task<int> AddChannel(string name, int parent) { return FixIce.FromAsync(name, parent, S.begin_addChannel, S.end_addChannel); }
         public Task SendMessageChannel(int chanid, bool tree, string text) { return FixIce.FromAsyncVoid(chanid, tree, text, S.begin_sendMessageChannel, S.end_sendMessageChannel); }
-        // TODO: getACL
-        // TODO: setACL
+        public Task SetACL(int chanid, ACLData data) { return FixIce.FromAsyncVoid(chanid, data.ACLs, data.Groups, data.Inherit, S.begin_setACL, S.end_setACL); }
+
+        public Task<ACLData> GetACL(int chanid)
+        {
+            return FixIce.FromAsync(chanid, S.begin_getACL, ar =>
+            {
+                var data = new ACLData();
+                S.end_getACL(out data.ACLs, out data.Groups, out data.Inherit, ar);
+                return data;
+            });
+        }
+
         public Task AddUserToGroup(int chanid, int sess, string grp) { return FixIce.FromAsyncVoid(chanid, sess, grp, S.begin_addUserToGroup, S.end_addUserToGroup); }
         public Task RemoveUserFromGroup(int chanid, int sess, string grp) { return FixIce.FromAsyncVoid(chanid, sess, grp, S.begin_removeUserFromGroup, S.end_removeUserFromGroup); }
         public Task RedirectWhisperGroup(int sess, string src, string target) { return FixIce.FromAsyncVoid(sess, src, target, S.begin_redirectWhisperGroup, S.end_redirectWhisperGroup); }
@@ -78,6 +88,13 @@ namespace Fancyauth.Wrapped
         public Task<byte[]> GetTexture(int userid) { return FixIce.FromAsync(userid, S.begin_getTexture, S.end_getTexture); }
         public Task SetTexture(int userid, byte[] tex) { return FixIce.FromAsyncVoid(userid, tex, S.begin_setTexture, S.end_setTexture); }
         public Task<int> GetUptime() { return FixIce.FromAsync(S.begin_getUptime, S.end_getUptime); }
+
+        public class ACLData
+        {
+            public Murmur.ACL[] ACLs;
+            public Murmur.Group[] Groups;
+            public bool Inherit;
+        }
     }
 }
 
