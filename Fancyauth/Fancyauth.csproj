@@ -98,6 +98,7 @@
     <Compile Include="Model\MusiG\SongRating.cs" />
     <Compile Include="Model\MusiG\Song.cs" />
     <Compile Include="Model\MusiG\SongSuggestion.cs" />
+    <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Murmur.cs" />

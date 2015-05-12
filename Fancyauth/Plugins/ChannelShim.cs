@@ -24,6 +24,13 @@ namespace Fancyauth.Plugins
         {
             return Server.SendMessageChannel(ChannelId, includingSubchannels, message);
         }
+
+        async Task<IChannelPermissions> IChannelShim.GetPermissions()
+        {
+            var perms = new PermissionsWrapper(ChannelId, Server);
+            await perms.Refresh();
+            return perms;
+        }
     }
 }
 

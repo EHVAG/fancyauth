@@ -10,6 +10,7 @@ namespace Fancyauth.API
     {
         int ChannelId { get; }
 
+        Task<IChannelPermissions> GetPermissions();
 
         /// <summary>
         /// Sends a message to this channel.

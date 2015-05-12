@@ -31,8 +31,14 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IChannelACLEntry.cs" />
+    <Compile Include="IChannelACLEntryReadonly.cs" />
+    <Compile Include="IChannelGroup.cs" />
+    <Compile Include="IChannelGroupInherited.cs" />
+    <Compile Include="IChannelPermissions.cs" />
     <Compile Include="IReadModifyWriteObject.cs" />
     <Compile Include="IShim.cs" />
+    <Compile Include="ChannelPermissions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IChannel.cs" />
     <Compile Include="IFancyPlugin.cs" />
