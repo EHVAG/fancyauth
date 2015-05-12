@@ -30,15 +30,17 @@ namespace Fancyauth
 
         public override async Task UserTextMessage(Murmur.User user, Murmur.TextMessage message)
         {
-            using (var context = await FancyContext.Connect()) 
-            using (var transact = context.Database.BeginTransaction()) {
+            using (var context = await FancyContext.Connect())
+            using (var transact = context.Database.BeginTransaction())
+            {
                 User senderEntity = null;
                 if (user.userid > 0)
                     senderEntity = await context.Users.FindAsync(user.userid);
 
                 var qtext = message.text.Replace("&quot;", "\"");
                 var msg = CommandPattern.Matches(qtext).Cast<Match>().Select(m => m.Value).ToArray();
-                if (message.channels.Any()) {
+                if (message.channels.Any())
+                {
                     if (msg[0] == "@fancy-ng")
                         await CommandMgr.HandleCommand(Server, user, msg.Skip(1));
 
@@ -47,7 +49,8 @@ namespace Fancyauth
                 }
 
                 // TODO: handle antispam by COUNT-querying chatlog
-                if (senderEntity != null) {
+                if (senderEntity != null)
+                {
                     var messagesInTheLastSeconds = await context.Logs.OfType<LogEntry.ChatMessage>()
                         .Where(x => x.WhoUId == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTime.UtcNow, -5)).CountAsync();
                     if (messagesInTheLastSeconds >= 3)
@@ -62,10 +65,12 @@ namespace Fancyauth
         public override async Task UserConnected(Murmur.User user)
         {
             using (var context = await FancyContext.Connect())
-            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
+            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
                 var logEntry = context.Logs.Add(new LogEntry.Connected { When = DateTime.UtcNow });
 
-                if (user.userid > 0) {
+                if (user.userid > 0)
+                {
                     var userNotificationsQuery = from usr in context.Users
                                                  where usr.Id == user.userid
                                                  join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.WhoU.Id into connectedEvents
@@ -77,7 +82,9 @@ namespace Fancyauth
                         await Server.SendMessage(user.session, notify.Message);
 
                     logEntry.WhoU = res.usr;
-                } else {
+                }
+                else
+                {
                     // guest handoff
                     var assoc = await context.GuestAssociations.FindAsync(user.name);
                     assoc.Session = user.session;
@@ -97,11 +104,13 @@ namespace Fancyauth
         public override async Task UserDisconnected(Murmur.User user)
         {
             using (var context = await FancyContext.Connect())
-            using (var transact = context.Database.BeginTransaction()) {
+            using (var transact = context.Database.BeginTransaction())
+            {
                 var log = context.Logs.Add(new LogEntry.Disconnected { When = DateTime.UtcNow });
                 if (user.userid > 0)
                     log.WhoU = context.Users.Attach(new User { Id = user.userid });
-                else {
+                else
+                {
                     // remove guest assoc
                     var assoc = await context.GuestAssociations.FindAsync(user.name);
                     context.GuestAssociations.Remove(assoc);
