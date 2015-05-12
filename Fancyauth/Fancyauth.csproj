@@ -83,6 +83,10 @@
     <Compile Include="Migrations\201505100003494_ChannelInfoChangeFixWrongKey.Designer.cs">
       <DependentUpon>201505100003494_ChannelInfoChangeFixWrongKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201505121456531_MusiG_AddSongFullTextSearch.cs" />
+    <Compile Include="Migrations\201505121456531_MusiG_AddSongFullTextSearch.Designer.cs">
+      <DependentUpon>201505121456531_MusiG_AddSongFullTextSearch.cs</DependentUpon>
+    </Compile>
     <Compile Include="Model\Channel.cs" />
     <Compile Include="Model\MusiG\Album.cs" />
     <Compile Include="Model\MusiG\Genre.cs" />
@@ -165,6 +169,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201505100003494_ChannelInfoChangeFixWrongKey.resx">
       <DependentUpon>201505100003494_ChannelInfoChangeFixWrongKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505121456531_MusiG_AddSongFullTextSearch.resx">
+      <DependentUpon>201505121456531_MusiG_AddSongFullTextSearch.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>

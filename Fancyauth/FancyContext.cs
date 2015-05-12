@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Threading.Tasks;
 using Fancyauth.Model;
 using Fancyauth.Model.MusiG;
+using System.Data.Entity.Infrastructure;
 
 namespace Fancyauth
 {
@@ -29,6 +30,15 @@ namespace Fancyauth
             var context = new FancyContext();
             await context.Database.Connection.OpenAsync();
             return context;
+        }
+
+        public DbSqlQuery<Song> SearchSong(string search)
+        {
+            return Songs.SqlQuery(@"
+SELECT ""Id"", ""Title"", ""AdditionDate"", ""Album_Id"", ""Interpret_Id"", ""SourceSuggestion_Id"", ""Genre_Id""
+FROM dbo.""Songs"", plainto_tsquery(@p0) query
+WHERE query @@ ftsvec
+ORDER BY ts_rank_cd(ftsvec, query);", search);
         }
 
         public virtual DbSet<User> Users { get; set; }
