@@ -27,6 +27,6 @@ namespace Fancyauth.Model.MusiG
         [Required]
         public virtual Interpret Interpret { get; set; }
 
-        public virtual IEnumerable<Interpret> AdditionalInterprets { get; set; }
+        public virtual ICollection<Interpret> AdditionalInterprets { get; set; }
     }
 }

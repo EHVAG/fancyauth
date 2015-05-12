@@ -23,6 +23,9 @@ namespace Fancyauth
                 .Map<LogEntry.Connected>(x => x.Requires("Discriminator").HasValue((int)LogEntry.Discriminator.Connected))
                 .Map<LogEntry.Disconnected>(x => x.Requires("Discriminator").HasValue((int)LogEntry.Discriminator.Disconnected))
                 .Map<LogEntry.ChatMessage>(x => x.Requires("Discriminator").HasValue((int)LogEntry.Discriminator.ChatMessage));
+
+            modelBuilder.Entity<Song>()
+                .HasMany(x => x.AdditionalInterprets).WithMany().Map(x => x.ToTable("Songs_AdditionalInterprets"));
         }
 
         public static async Task<FancyContext> Connect()

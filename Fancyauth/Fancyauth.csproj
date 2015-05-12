@@ -87,6 +87,10 @@
     <Compile Include="Migrations\201505121456531_MusiG_AddSongFullTextSearch.Designer.cs">
       <DependentUpon>201505121456531_MusiG_AddSongFullTextSearch.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201505121546234_MusiG_FixAdditionalInterprets.cs" />
+    <Compile Include="Migrations\201505121546234_MusiG_FixAdditionalInterprets.Designer.cs">
+      <DependentUpon>201505121546234_MusiG_FixAdditionalInterprets.cs</DependentUpon>
+    </Compile>
     <Compile Include="Model\Channel.cs" />
     <Compile Include="Model\MusiG\Album.cs" />
     <Compile Include="Model\MusiG\Genre.cs" />
@@ -172,6 +176,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201505121456531_MusiG_AddSongFullTextSearch.resx">
       <DependentUpon>201505121456531_MusiG_AddSongFullTextSearch.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505121546234_MusiG_FixAdditionalInterprets.resx">
+      <DependentUpon>201505121546234_MusiG_FixAdditionalInterprets.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
