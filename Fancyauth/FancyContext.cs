@@ -38,10 +38,10 @@ namespace Fancyauth
         public DbSqlQuery<Song> SearchSong(string search)
         {
             return Songs.SqlQuery(@"
-SELECT ""Id"", ""Title"", ""AdditionDate"", ""Album_Id"", ""Interpret_Id"", ""SourceSuggestion_Id"", ""Genre_Id""
-FROM dbo.""Songs"", plainto_tsquery(@p0) query
-WHERE query @@ ftsvec
-ORDER BY ts_rank_cd(ftsvec, query);", search);
+SELECT s.*
+FROM dbo.""Songs"" s, plainto_tsquery(@p0) query
+WHERE query @@ dbo.songs_build_ftsvec(s)
+ORDER BY ts_rank_cd(dbo.songs_build_ftsvec(s), query); ", search);
         }
 
         public virtual DbSet<User> Users { get; set; }
