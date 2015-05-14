@@ -30,6 +30,8 @@ namespace Fancyauth.Model
 
         [Required(AllowEmptyStrings = true)]
         public string Comment { get; set; }
+
+        public long? SteamId { get; set; }
     }
 }
 
