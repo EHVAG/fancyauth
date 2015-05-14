@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Fancyauth.APIUtil</id>
-    <version>1.0</version>
+    <version>1.1</version>
     <title>Fancyauth API Util</title>
     <authors>main</authors>
     <owners>main</owners>
@@ -13,7 +13,7 @@
     <copyright>Copyright 2015 main()</copyright>
     <tags>fancyauth murmur mumble</tags>
     <dependencies>
-      <dependency id="Fancyauth.API" version="1.0" />
+      <dependency id="Fancyauth.API" version="1.1" />
     </dependencies>
   </metadata>
   <files>
