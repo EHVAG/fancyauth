@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Fancyauth.API
 {
-    public interface IChannelGroupInherited : IChannelGroup
+    public interface IChannelUserGroupInherited : IChannelUserGroup
     {
         /// <summary>
         /// Disable this to get back to a clean and known set of members on this inheritance level.

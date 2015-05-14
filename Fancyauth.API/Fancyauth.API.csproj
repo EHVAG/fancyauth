@@ -33,8 +33,6 @@
   <ItemGroup>
     <Compile Include="IChannelACLEntry.cs" />
     <Compile Include="IChannelACLEntryReadonly.cs" />
-    <Compile Include="IChannelGroup.cs" />
-    <Compile Include="IChannelGroupInherited.cs" />
     <Compile Include="IChannelPermissions.cs" />
     <Compile Include="IReadModifyWriteObject.cs" />
     <Compile Include="IShim.cs" />
@@ -53,6 +51,9 @@
     <Compile Include="IChannelShim.cs" />
     <Compile Include="Commands\CommandFunc.cs" />
     <Compile Include="Commands\ICommandManager.cs" />
+    <Compile Include="IChannelUserGroup.cs" />
+    <Compile Include="IChannelGroup.cs" />
+    <Compile Include="IChannelUserGroupInherited.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

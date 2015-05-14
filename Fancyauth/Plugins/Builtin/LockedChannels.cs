@@ -15,10 +15,15 @@ namespace Fancyauth.Plugins.Builtin
             if (channel.Temporary && channel.Name.ToLowerInvariant().Contains("lock"))
             {
                 var perms = await channel.GetPermissions();
-                foreach (var group in perms.InheritedGroups)
-                    await channel.SendMessage("iGroup: " + group.Name);
-                foreach (var group in perms.Groups)
-                    await channel.SendMessage("Group: " + group.Name);
+
+                var allACL = perms.CreateACLEntry(perms.SystemGroup_All);
+                allACL.Deny = ChannelPermissions.PermissionEnter | ChannelPermissions.PermissionMove;
+
+                var inACL = perms.CreateACLEntry(perms.SystemGroup_In);
+                inACL.Allow = ChannelPermissions.PermissionMove;
+
+                await perms.SaveChanges();
+                await channel.SendMessage("locked_chan successfully set up.");
             }
         }
     }

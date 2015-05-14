@@ -14,9 +14,9 @@ namespace Fancyauth.Plugins
 
         public bool Inherit { get; set; }
         public IList<IChannelACLEntry> ACL { get; private set; }
-        public ICollection<IChannelGroup> Groups { get; private set; }
+        public ICollection<IChannelUserGroup> Groups { get; private set; }
         public IReadOnlyList<IChannelACLEntryReadonly> InheritedACL { get; private set; }
-        public IReadOnlyCollection<IChannelGroupInherited> InheritedGroups { get; private set; }
+        public IReadOnlyCollection<IChannelUserGroupInherited> InheritedGroups { get; private set; }
 
         public PermissionsWrapper(int channelId, Wrapped.Server server)
         {
@@ -48,7 +48,7 @@ namespace Fancyauth.Plugins
                     Deny = (ChannelPermissions)x.deny,
                 };
                 if (x.userid == -1)
-                    acl.TargetGroup = aclGroups.Where(y => y.Name == x.group).Single();
+                    acl.TargetGroup = aclGroups.Where(y => y.Name == x.group).SingleOrDefault() ?? TryLookupSystemGroup(x);
                 else
                     acl.TargetUser = x.userid;
                 return acl;
@@ -57,8 +57,17 @@ namespace Fancyauth.Plugins
             InheritedACL = aclProxies.Where(x => x._Inherited).ToList<IChannelACLEntryReadonly>();
             ACL = aclProxies.Where(x => !x._Inherited).ToList<IChannelACLEntry>();
 
-            InheritedGroups = aclGroups.Where(x => x._Inherited).ToList<IChannelGroupInherited>();
-            Groups = aclGroups.Where(x => !x._Inherited).ToList<IChannelGroup>();
+            InheritedGroups = aclGroups.Where(x => x._Inherited).ToList<IChannelUserGroupInherited>();
+            Groups = aclGroups.Where(x => !x._Inherited).ToList<IChannelUserGroup>();
+        }
+
+        private SysGroup TryLookupSystemGroup(Murmur.ACL x)
+        {
+            // Keep this wrapper because I'm lazy and didn't implement ALL system groups
+            SysGroup res;
+            if (SysGroups.TryGetValue(x.group, out res))
+                return res;
+            throw new Exception(String.Format("Group not found: '{0}'", x.group));
         }
 
         Task IReadModifyWriteObject.SaveChanges()
@@ -66,25 +75,28 @@ namespace Fancyauth.Plugins
             // Validate that all referenced groups are there.
             // (race condition but fine as this is just a convenience validation)
             // (btw, you could also just implement custom group objects to trick this check)
-            if (!ACL.OfType<ChanACL>().All(x => x.TargetGroup == null || Groups.Concat(InheritedGroups).Any(y => y.Name == x.TargetGroup.Name)))
+            if (!ACL.Cast<ChanACL>().All(x => x.TargetGroup == null || SysGroups.Values.Contains(x.TargetGroup)
+                || Groups.Concat(InheritedGroups).Any(y => y.Name == ((ChanGroup)x.TargetGroup).Name)))
                 throw new InvalidOperationException("Referencing groups that weren't added!");
 
             return Server.SetACL(ChannelId, new Wrapped.Server.ACLData
             {
                 Inherit = Inherit,
-                ACLs = InheritedACL.Concat(ACL).Select(x => new Murmur.ACL
+                ACLs = ACL.Select(x => new Murmur.ACL
                 {
                     allow = (int)x.Allow,
                     deny = (int)x.Deny,
                     applyHere = x.ApplyOnThisChannel,
                     applySubs = x.ApplyOnSubchannels,
                     userid = x.TargetUser ?? -1,
-                    group = x.TargetGroup != null ? x.TargetGroup.Name : "",
+                    group = x.TargetGroup == null ? String.Empty :
+                        (x.TargetGroup is ChanGroup ? ((ChanGroup)x.TargetGroup).Name : SysGroups.Single(y => y.Value == x.TargetGroup).Key),
                 }).ToArray(),
-                Groups = InheritedGroups.Concat(Groups).Select(x => new Murmur.Group
+                Groups = InheritedGroups.Concat(Groups).Cast<ChanGroup>().Select(x => new Murmur.Group
                 {
                     name = x.Name,
-                    inherit = (x is IChannelGroupInherited) ? ((IChannelGroupInherited)x).IncludeMembersFromParentChannels : false,
+                    inherited = x._Inherited,
+                    inherit = (x is IChannelUserGroupInherited) ? ((IChannelUserGroupInherited)x).IncludeMembersFromParentChannels : false,
                     inheritable = x.Inheritable,
                     add = x.Members.ToArray(),
                     remove = x.NegativeMembers.ToArray(),
@@ -92,10 +104,13 @@ namespace Fancyauth.Plugins
             });
         }
 
-        public IChannelGroup CreateGroup(string name)
+        private const string Alphanumeric = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        public IChannelUserGroup CreateGroup(string name)
         {
+            if (name.Except(Alphanumeric).Any())
+                throw new ArgumentException("Group names must be alphanumeric!", "name");
             if (Groups.Concat(InheritedGroups).Any(x => x.Name == name))
-                throw new ArgumentException("A group with that name already exists!");
+                throw new ArgumentException("A group with that name already exists!", "name");
 
             return new ChanGroup
             {
@@ -107,7 +122,52 @@ namespace Fancyauth.Plugins
             };
         }
 
-        private class ChanGroup : IChannelGroupInherited
+        public IChannelACLEntry CreateACLEntry(int targetUser)
+        {
+            var x = new ChanACL
+            {
+                ApplyOnSubchannels = true,
+                ApplyOnThisChannel = true,
+                Allow = (ChannelPermissions)0,
+                Deny = (ChannelPermissions)0,
+                TargetUser = targetUser,
+            };
+            ACL.Add(x);
+            return x;
+        }
+
+        public IChannelACLEntry CreateACLEntry(IChannelGroup targetGroup)
+        {
+            var x = new ChanACL
+            {
+                ApplyOnSubchannels = true,
+                ApplyOnThisChannel = true,
+                Allow = (ChannelPermissions)0,
+                Deny = (ChannelPermissions)0,
+                TargetGroup = targetGroup,
+            };
+            ACL.Add(x);
+            return x;
+        }
+
+        private IDictionary<string, SysGroup> SysGroups = new Dictionary<string, SysGroup>
+        {
+            { "all", new SysGroup() },
+            { "auth", new SysGroup() },
+            { "in", new SysGroup() },
+            { "out", new SysGroup() },
+        };
+
+        IChannelGroup IChannelPermissions.SystemGroup_All { get { return SysGroups["all"]; } }
+        IChannelGroup IChannelPermissions.SystemGroup_Auth { get { return SysGroups["auth"]; } }
+        IChannelGroup IChannelPermissions.SystemGroup_In { get { return SysGroups["in"]; } }
+        IChannelGroup IChannelPermissions.SystemGroup_Out { get { return SysGroups["out"]; } }
+
+        private class SysGroup : IChannelGroup
+        {
+        }
+
+        private class ChanGroup : SysGroup, IChannelUserGroupInherited
         {
             public bool _Inherited { get; set; }
 
