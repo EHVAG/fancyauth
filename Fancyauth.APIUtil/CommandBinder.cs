@@ -85,6 +85,12 @@ namespace Fancyauth.APIUtil
                         typeof(int).MakeByRefType()
                     }), tmpString, cur.Item2);
                     break;
+                case TypeCode.Int64:
+                    conversionSuccess = Expression.Call(typeof(long).GetMethod("TryParse", new Type[] {
+                        typeof(string),
+                        typeof(long).MakeByRefType()
+                    }), tmpString, cur.Item2);
+                    break;
                 case TypeCode.Boolean:
                     conversionSuccess = Expression.Call(typeof(bool).GetMethod("TryParse", new Type[] {
                         typeof(string),
