@@ -95,6 +95,10 @@
     <Compile Include="Migrations\201505142345223_UserAddSteamId.Designer.cs">
       <DependentUpon>201505142345223_UserAddSteamId.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201505151154077_SteamChatForwardingAssociations.cs" />
+    <Compile Include="Migrations\201505151154077_SteamChatForwardingAssociations.Designer.cs">
+      <DependentUpon>201505151154077_SteamChatForwardingAssociations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Model\Channel.cs" />
     <Compile Include="Model\MusiG\Album.cs" />
     <Compile Include="Model\MusiG\Genre.cs" />
@@ -102,6 +106,7 @@
     <Compile Include="Model\MusiG\SongRating.cs" />
     <Compile Include="Model\MusiG\Song.cs" />
     <Compile Include="Model\MusiG\SongSuggestion.cs" />
+    <Compile Include="Model\SteamChatForwardingAssociation.cs" />
     <Compile Include="Plugins\Builtin\LockedChannels.cs" />
     <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />
@@ -188,6 +193,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201505142345223_UserAddSteamId.resx">
       <DependentUpon>201505142345223_UserAddSteamId.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505151154077_SteamChatForwardingAssociations.resx">
+      <DependentUpon>201505151154077_SteamChatForwardingAssociations.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>

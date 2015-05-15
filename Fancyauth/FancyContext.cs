@@ -50,6 +50,8 @@ ORDER BY ts_rank_cd(dbo.songs_build_ftsvec(s), query); ", search);
         public virtual DbSet<OfflineNotification> OfflineNotifications { get; set; }
         public virtual DbSet<LogEntry> Logs { get; set; }
 
+        public virtual DbSet<SteamChatForwardingAssociation> SteamChatForwardingAssociations { get; set; }
+
         public virtual DbSet<Channel> Channels { get; set; }
         public virtual DbSet<Channel.InfoChange> ChannelInfoChanges { get; set; }
 
