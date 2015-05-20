@@ -58,6 +58,20 @@ namespace Fancyauth.Plugins
             get { return Channel.temporary; }
             set { Channel.temporary = value; }
         }
+
+        public override bool Equals(object o)
+        {
+            IChannel t = this;
+            IChannel c = o as ChannelWrapper;
+
+            return base.Equals(c)
+                && c.Description == t.Description
+                && c.LinkedChannels.SetEquals(t.LinkedChannels)
+                && c.Name == t.Name
+                && c.Parent.Equals(t.Parent)
+                && c.Position == t.Position
+                && c.Temporary == t.Temporary;
+        }
     }
 }
 

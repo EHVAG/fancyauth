@@ -100,6 +100,38 @@ namespace Fancyauth.Plugins
         float IUser.AverageUdpPing { get { return User.udpPing; } }
 
         float IUser.AverageTcpPing { get { return User.tcpPing; } }
+
+        public override bool Equals(Object o)
+        {
+            IUser t = this;
+            IUser u = o as UserWrapper;
+
+            return base.Equals(u)
+                && u.UserId == t.UserId
+                && u.ServerMute == t.ServerMute
+                && u.ServerDeaf == t.ServerDeaf
+                && u.ServerSuppress == t.ServerSuppress
+                && u.PrioritySpeaker == t.PrioritySpeaker
+                && u.SelfMute == t.SelfMute
+                && u.SelfDeaf == t.SelfDeaf
+                && u.Recording == t.Recording
+                && u.CurrentChannel.Equals(t.CurrentChannel)
+                && u.Name == t.Name
+                && u.OnlineTime.Equals(t.OnlineTime)
+                && u.TransmissionRateInBytesPerSecond == t.TransmissionRateInBytesPerSecond
+                && u.ClientVersion == t.ClientVersion
+                && u.ClientRelease == t.ClientRelease
+                && u.OperatingSystem == t.OperatingSystem
+                && u.OperatingSystemVersion == t.OperatingSystemVersion
+                && u.PluginIdentity == t.PluginIdentity
+                && u.PluginContext == t.PluginContext
+                && u.UserComment == t.UserComment
+                && u.ClientAddress.Equals(t.ClientAddress)
+                && u.TcpOnly == t.TcpOnly
+                && u.IdleTime.Equals(t.IdleTime)
+                && u.AverageTcpPing == t.AverageTcpPing
+                && u.AverageUdpPing == t.AverageUdpPing;
+        }
     }
 }
 
