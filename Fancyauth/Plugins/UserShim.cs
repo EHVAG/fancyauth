@@ -29,6 +29,20 @@ namespace Fancyauth.Plugins
         {
             return Server.SendMessage(SessionId, message);
         }
+
+        public override bool Equals(object o)
+        {
+            var userShim = o as UserShim;
+            if (null == userShim)
+                return false;
+
+            return userShim.SessionId == this.SessionId;
+        }
+
+        public override int GetHashCode()
+        {
+            return SessionId * 37;
+        }
     }
 }
 

@@ -31,6 +31,20 @@ namespace Fancyauth.Plugins
             await perms.Refresh();
             return perms;
         }
+
+        public override bool Equals(object o)
+        {
+            var c = o as ChannelShim;
+            if (null == c)
+                return false;
+
+            return c.ChannelId == this.ChannelId;
+        }
+
+        public override int GetHashCode()
+        {
+            return ChannelId * 73;
+        }
     }
 }
 
