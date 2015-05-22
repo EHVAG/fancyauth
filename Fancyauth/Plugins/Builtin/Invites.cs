@@ -37,7 +37,7 @@ namespace Fancyauth.Plugins.Builtin
                 context.Invites.Add(new Model.Invite {
                     Code = code,
                     Inviter = context.Users.Attach(new Model.User { Id = usr.UserId }),
-                    ExpirationDate = DateTime.UtcNow.AddHours(1),
+                    ExpirationDate = DateTimeOffset.Now.AddHours(1),
                 });
 
                 await context.SaveChangesAsync();

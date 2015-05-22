@@ -30,7 +30,7 @@ namespace Fancyauth.Model
 
             public string Description { get; set; }
 
-            public DateTime When { get; set; }
+            public DateTimeOffset When { get; set; }
 
             [Required]
             public virtual Channel Channel { get; set; }

@@ -10,7 +10,7 @@ namespace Fancyauth.Model
         public int Id { get; set; }
 
         [Required, Index]
-        public DateTime When { get; set; }
+        public DateTimeOffset When { get; set; }
 
         public virtual User WhoU { get; set; }
         public virtual Invite WhoI { get; set; }

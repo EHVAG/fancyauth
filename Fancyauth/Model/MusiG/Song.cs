@@ -14,7 +14,7 @@ namespace Fancyauth.Model.MusiG
         [Required]
         public string Title { get; set; }
 
-        public DateTime AdditionDate { get; set; }
+        public DateTimeOffset AdditionDate { get; set; }
 
         public virtual SongSuggestion SourceSuggestion { get; set; }
 

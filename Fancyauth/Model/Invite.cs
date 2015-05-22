@@ -18,7 +18,7 @@ namespace Fancyauth.Model
         public int InviterId { get; set; }
 
         [Required]
-        public DateTime ExpirationDate { get; set; }
+        public DateTimeOffset ExpirationDate { get; set; }
 
         [Required, DefaultValue(0)]
         public int UseCount { get; set; }

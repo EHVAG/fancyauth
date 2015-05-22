@@ -17,7 +17,7 @@ namespace Fancyauth.Model
         public string Message { get; set; }
 
         [Required]
-        public DateTime When { get; set; }
+        public DateTimeOffset When { get; set; }
     }
 }
 

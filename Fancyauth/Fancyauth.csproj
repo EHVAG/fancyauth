@@ -99,6 +99,10 @@
     <Compile Include="Migrations\201505151154077_SteamChatForwardingAssociations.Designer.cs">
       <DependentUpon>201505151154077_SteamChatForwardingAssociations.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201505212357444_FixDateTime.cs" />
+    <Compile Include="Migrations\201505212357444_FixDateTime.Designer.cs">
+      <DependentUpon>201505212357444_FixDateTime.cs</DependentUpon>
+    </Compile>
     <Compile Include="Model\Channel.cs" />
     <Compile Include="Model\MusiG\Album.cs" />
     <Compile Include="Model\MusiG\Genre.cs" />
@@ -196,6 +200,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201505151154077_SteamChatForwardingAssociations.resx">
       <DependentUpon>201505151154077_SteamChatForwardingAssociations.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505212357444_FixDateTime.resx">
+      <DependentUpon>201505212357444_FixDateTime.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>

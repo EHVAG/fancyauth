@@ -62,7 +62,7 @@ namespace Fancyauth
                     // * new cert for existing user
                     // * new user
                     // * random person on the internet
-                    var invite = await context.Invites.Where(x => (x.Code == pw.Trim()) && (x.ExpirationDate > DateTime.UtcNow)).Select(x => new { x.Id, x.UseCount }).SingleOrDefaultAsync();
+                    var invite = await context.Invites.Where(x => (x.Code == pw.Trim()) && (x.ExpirationDate > DateTimeOffset.Now)).Select(x => new { x.Id, x.UseCount }).SingleOrDefaultAsync();
                     if (invite != null) {
                         var tmpinv = context.Invites.Attach(new Invite { Id = invite.Id, UseCount = invite.UseCount + 1 });
                         context.GuestAssociations.Add(new GuestAssociation { Name = name, Invite = tmpinv });

@@ -45,14 +45,13 @@ namespace Fancyauth
                         await CommandMgr.HandleCommand(Server, user, msg.Skip(1));
 
                     if (senderEntity != null)
-                        context.Logs.Add(new LogEntry.ChatMessage { When = DateTime.UtcNow, WhoU = senderEntity, Message = message.text });
+                        context.Logs.Add(new LogEntry.ChatMessage { When = DateTimeOffset.Now, WhoU = senderEntity, Message = message.text });
                 }
 
-                // TODO: handle antispam by COUNT-querying chatlog
                 if (senderEntity != null)
                 {
                     var messagesInTheLastSeconds = await context.Logs.OfType<LogEntry.ChatMessage>()
-                        .Where(x => x.WhoUId == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTime.UtcNow, -5)).CountAsync();
+                        .Where(x => x.WhoUId == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTimeOffset.Now, -5)).CountAsync();
                     if (messagesInTheLastSeconds >= 3)
                         await Server.KickUser(user.session, "Who are you, my evil twin?! [stop spamming]");
                 }
@@ -67,7 +66,7 @@ namespace Fancyauth
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                var logEntry = context.Logs.Add(new LogEntry.Connected { When = DateTime.UtcNow });
+                var logEntry = context.Logs.Add(new LogEntry.Connected { When = DateTimeOffset.Now });
 
                 if (user.userid > 0)
                 {
@@ -106,7 +105,7 @@ namespace Fancyauth
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
             {
-                var log = context.Logs.Add(new LogEntry.Disconnected { When = DateTime.UtcNow });
+                var log = context.Logs.Add(new LogEntry.Disconnected { When = DateTimeOffset.Now });
                 if (user.userid > 0)
                     log.WhoU = context.Users.Attach(new User { Id = user.userid });
                 else
@@ -138,7 +137,7 @@ namespace Fancyauth
                     Channel = dbchan,
                     Name = chan.name,
                     Description = chan.description,
-                    When = DateTime.UtcNow
+                    When = DateTimeOffset.Now
                 });
 
                 await context.SaveChangesAsync();
@@ -166,7 +165,7 @@ namespace Fancyauth
                     Channel = res.channel,
                     Name = chan.name == res.name ? null : chan.name,
                     Description = chan.description == res.desc ? null : chan.description,
-                    When = DateTime.UtcNow,
+                    When = DateTimeOffset.Now,
                 };
 
                 if (res.parentId != chan.parent)
@@ -191,7 +190,7 @@ namespace Fancyauth
                     Channel = channel,
                     Name = null,
                     Description = null,
-                    When = DateTime.UtcNow,
+                    When = DateTimeOffset.Now,
                 });
 
                 await context.SaveChangesAsync();

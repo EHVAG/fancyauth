@@ -109,7 +109,7 @@ namespace Fancyauth
                             Channel = dbChan,
                             Name = current.c.name,
                             Description = current.c.description,
-                            When = DateTime.UtcNow
+                            When = DateTimeOffset.Now
                         });
                     }
                     else if ((dbChanBig.name != current.c.name) || (dbChanBig.desc != current.c.description))
@@ -120,7 +120,7 @@ namespace Fancyauth
                             Channel = dbChan,
                             Name = current.c.name == dbChanBig.name ? null : current.c.name,
                             Description = current.c.description == dbChanBig.desc ? null : current.c.description,
-                            When = DateTime.UtcNow,
+                            When = DateTimeOffset.Now,
                         });
                     }
 
@@ -139,7 +139,7 @@ namespace Fancyauth
                         Channel = channel,
                         Name = null,
                         Description = null,
-                        When = DateTime.UtcNow,
+                        When = DateTimeOffset.Now,
                     });
                 }
 
