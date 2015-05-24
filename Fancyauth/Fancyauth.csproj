@@ -32,9 +32,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Ice, Version=3.5.1.0, Culture=neutral, PublicKeyToken=1f998c50fec78381">
-      <Package>Ice-3.5</Package>
-    </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="Mono.Security">
       <HintPath>..\packages\Npgsql.2.2.5\lib\net45\Mono.Security.dll</HintPath>
@@ -61,6 +58,9 @@
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="Ice">
+      <HintPath>..\packages\Ice.3.5.1.0\lib\Ice.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Migrations\201505091557008_InitSchema.cs" />
