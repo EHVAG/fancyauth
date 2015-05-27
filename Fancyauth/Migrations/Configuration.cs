@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Fancyauth.Migrations
 {
-    public class Configuration : DbMigrationsConfiguration<FancyContext>
+    internal class Configuration : DbMigrationsConfiguration<FancyContext>
     {
         public Configuration()
         {
