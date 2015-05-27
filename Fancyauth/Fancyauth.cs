@@ -51,6 +51,8 @@ namespace Fancyauth
                 var cmdmgr = new CommandManager();
                 var contextCallbackMgr = new ContextCallbackManager(server, adapter, StashCallback);
                 var pluginMan = new PluginManager(StashCallback, server, contextCallbackMgr, cmdmgr);
+                await pluginMan.Init();
+
                 var asci = adapter.addWithUUID(new ServerCallback(server, contextCallbackMgr, cmdmgr, StashCallback));
                 var asci2 = adapter.addWithUUID(pluginMan);
                 var authenticator = adapter.addWithUUID(new Authenticator());

@@ -30,7 +30,7 @@ namespace Fancyauth.APIUtil
         private List<ProxyCC.Channel> ChannelCallbacks = new List<ProxyCC.Channel>();
         private List<ProxyCC.User> UserCallbacks = new List<ProxyCC.User>();
 
-        void IFancyPlugin.Init()
+        Task IFancyPlugin.Init()
         {
             // TODO: improve these exceptions. Like, SIGNIFICANTLY.
             foreach (var method in GetType().GetMethods()) {
@@ -83,7 +83,7 @@ namespace Fancyauth.APIUtil
                 }
             }
 
-            this.Init();
+            return this.Init();
         }
 
         async Task IFancyPlugin.OnUserConnected(IUser user)
@@ -100,8 +100,9 @@ namespace Fancyauth.APIUtil
 
         // Here, we just pass through IFancyPlugin's methods.
         // But with stub impls, so you can just override what you need.
-        public virtual void Init()
+        public virtual Task Init()
         {
+            return Task.FromResult<object>(null);
         }
         
         public virtual Task OnUserConnected(IUser user)
