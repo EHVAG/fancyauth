@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Channel.cs" />
-    <Compile Include="FancyContext.cs" />
+    <Compile Include="FancyContextBase.cs" />
     <Compile Include="GuestAssociation.cs" />
     <Compile Include="Invite.cs" />
     <Compile Include="LogEntry.cs" />
