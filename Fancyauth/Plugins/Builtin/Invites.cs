@@ -1,8 +1,10 @@
 ﻿using System;
+using System.ComponentModel.Composition;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Fancyauth.API;
+using Fancyauth.API.DB;
 using Fancyauth.APIUtil;
 using Fancyauth.Model;
 
@@ -24,6 +26,9 @@ namespace Fancyauth.Plugins.Builtin
                     throw new Exception("bit gap in PwdIndexMask");
         }
 
+        [Import]
+        public IFancyContextProvider ContextProvider { get; set; }
+
         [Command]
         public async Task Invite(IUser usr)
         {
@@ -34,8 +39,8 @@ namespace Fancyauth.Plugins.Builtin
                 codeBuilder.Append(PwdChars[rand[i] & PwdIndexMask]);
 
             var code = codeBuilder.ToString();
-            using (var context = await FancyContext.Connect()) {
-                context.Invites.Add(new Model.Invite {
+            using (var context = await ContextProvider.Connect()) {
+                context.Invites.Add(new Invite {
                     Code = code,
                     Inviter = context.Users.Attach(new Model.User { Id = usr.UserId }),
                     ExpirationDate = DateTimeOffset.Now.AddHours(1),

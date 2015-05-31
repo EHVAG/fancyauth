@@ -11,6 +11,8 @@ using Fancyauth.API.Commands;
 using Fancyauth.API.ContextCallbacks;
 using Fancyauth.Commands;
 using Fancyauth.ContextCallbacks;
+using Fancyauth.API.DB;
+using Fancyauth.Model;
 
 namespace Fancyauth.Plugins
 {
@@ -90,6 +92,15 @@ namespace Fancyauth.Plugins
             var apiUser = new UserWrapper(WServer, user);
             var destChans = message.channels.Select(x => new ChannelShim(WServer, x)).ToArray();
             return Task.WhenAll(Plugins.Select(x => x.OnChatMessage(apiUser, destChans, message.text)));
+        }
+
+        [Export(typeof(IFancyContextProvider))]
+        internal class FancyContextProvider : IFancyContextProvider
+        {
+            async Task<FancyContextBase> IFancyContextProvider.Connect()
+            {
+                return await FancyContext.Connect();
+            }
         }
     }
 }

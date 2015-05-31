@@ -150,6 +150,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fancyauth.API.DB\Fancyauth.API.DB.csproj">
+      <Project>{8cc8506f-80a7-410c-bfc4-f9488babad9a}</Project>
+      <Name>Fancyauth.API.DB</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Fancyauth.API\Fancyauth.API.csproj">
       <Project>{F77D8A2C-60EA-4A5A-B9F6-47926B469095}</Project>
       <Name>Fancyauth.API</Name>
