@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -102,6 +102,10 @@
     <Compile Include="Migrations\201505212357444_FixDateTime.Designer.cs">
       <DependentUpon>201505212357444_FixDateTime.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201506062157193_AddedFieldsToSongSuggestion.cs" />
+    <Compile Include="Migrations\201506062157193_AddedFieldsToSongSuggestion.Designer.cs">
+      <DependentUpon>201506062157193_AddedFieldsToSongSuggestion.cs</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\Builtin\LockedChannels.cs" />
     <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />
@@ -137,13 +141,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Folder Include="Wrapped\" />
-    <Folder Include="Migrations\" />
     <Folder Include="Model\" />
-    <Folder Include="ContextCallbacks\" />
-    <Folder Include="Commands\" />
-    <Folder Include="Plugins\" />
-    <Folder Include="Plugins\Builtin\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -197,6 +195,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201505212357444_FixDateTime.resx">
       <DependentUpon>201505212357444_FixDateTime.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201506062157193_AddedFieldsToSongSuggestion.resx">
+      <DependentUpon>201506062157193_AddedFieldsToSongSuggestion.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>

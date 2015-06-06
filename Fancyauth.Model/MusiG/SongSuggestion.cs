@@ -11,12 +11,20 @@ namespace Fancyauth.Model.MusiG
     {
         public int Id { get; set; }
 
+        [Required]
+        public string YouTubeURL { get; set; }
+
+        [Required]
         public string Title { get; set; }
 
+        [Required]
         public string Interpret { get; set; }
 
         [Required]
         public string Album { get; set; }
+
+        [Required]
+        public string AlbumInterpret { get; set; }
 
         [Required]
         public string Genre { get; set; }
