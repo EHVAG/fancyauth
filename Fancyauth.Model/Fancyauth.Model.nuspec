@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>Fancyauth.Model</id>
+    <version>1.0.1</version>
+    <title>Fancyauth Model</title>
+    <authors>main</authors>
+    <owners>main</owners>
+    <projectUrl>https://github.com/EHVAG/fancyauth</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Fancyauth DB model.</description>
+    <releaseNotes>PR #6 (eca17bc702271d7036d3e08ec4134c46cbbfcd5a)</releaseNotes>
+    <copyright>Copyright 2015 EHVAG</copyright>
+    <tags>fancyauth murmur mumble</tags>
+  </metadata>
+  <files>
+    <file src="bin/Release/Fancyauth.Model.dll" target="lib\net45" />
+  </files>
+</package>
