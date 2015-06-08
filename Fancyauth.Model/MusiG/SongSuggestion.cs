@@ -28,5 +28,7 @@ namespace Fancyauth.Model.MusiG
 
         [Required]
         public string Genre { get; set; }
+
+        public bool Decided { get; set; }
     }
 }

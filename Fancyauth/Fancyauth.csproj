@@ -106,6 +106,10 @@
     <Compile Include="Migrations\201506062157193_AddedFieldsToSongSuggestion.Designer.cs">
       <DependentUpon>201506062157193_AddedFieldsToSongSuggestion.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201506081930540_SongSuggestionsCanBeDecided.cs" />
+    <Compile Include="Migrations\201506081930540_SongSuggestionsCanBeDecided.Designer.cs">
+      <DependentUpon>201506081930540_SongSuggestionsCanBeDecided.cs</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\Builtin\LockedChannels.cs" />
     <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />
@@ -198,6 +202,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201506062157193_AddedFieldsToSongSuggestion.resx">
       <DependentUpon>201506062157193_AddedFieldsToSongSuggestion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201506081930540_SongSuggestionsCanBeDecided.resx">
+      <DependentUpon>201506081930540_SongSuggestionsCanBeDecided.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
