@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>Fancyauth.Model</id>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <title>Fancyauth Model</title>
     <authors>main</authors>
     <owners>main</owners>
     <projectUrl>https://github.com/EHVAG/fancyauth</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Fancyauth DB model.</description>
-    <releaseNotes>PR #6 (eca17bc702271d7036d3e08ec4134c46cbbfcd5a)</releaseNotes>
+    <releaseNotes>64338900a1ec96433701d615366f1f020d70bfd8</releaseNotes>
     <copyright>Copyright 2015 EHVAG</copyright>
     <tags>fancyauth murmur mumble</tags>
   </metadata>
