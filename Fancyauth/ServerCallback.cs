@@ -16,12 +16,14 @@ namespace Fancyauth
 {
     public class ServerCallback : Wrapped.ServerCallback
     {
+        private readonly Steam.SteamListener SteamListener;
         private readonly Server Server;
         private readonly CommandManager CommandMgr;
 
-        public ServerCallback(Server server, ContextCallbackManager contextCallbackMgr, CommandManager cmdmgr, Action<Task> asyncCompleter)
+        public ServerCallback(Steam.SteamListener steamListener, Server server, ContextCallbackManager contextCallbackMgr, CommandManager cmdmgr, Action<Task> asyncCompleter)
             : base(asyncCompleter)
         {
+            SteamListener = steamListener;
             Server = server;
             CommandMgr = cmdmgr;
         }
@@ -42,7 +44,7 @@ namespace Fancyauth
                 if (message.channels.Any())
                 {
                     if (msg[0] == "@fancy-ng")
-                        await CommandMgr.HandleCommand(Server, user, msg.Skip(1));
+                        await CommandMgr.HandleCommand(SteamListener, Server, user, msg.Skip(1));
 
                     if (senderEntity != null)
                         context.Logs.Add(new LogEntry.ChatMessage { When = DateTimeOffset.Now, WhoU = senderEntity, Message = message.text });

@@ -9,22 +9,24 @@ namespace Fancyauth.ContextCallbacks
 {
     public class ContextCallbackManager : ServerContextCallback, IContextCallbackManager
     {
+        private readonly Steam.SteamListener SteamListener;
         private readonly Wrapped.Server Server;
         private readonly Murmur.ServerContextCallbackPrx IcePrx;
         private readonly Dictionary<string, IServerContextCallback> ServerCallbacks = new Dictionary<string, IServerContextCallback>();
         private readonly Dictionary<string, IChannelContextCallback> ChannelCallbacks = new Dictionary<string, IChannelContextCallback>();
         private readonly Dictionary<string, IUserContextCallback> UserCallbacks = new Dictionary<string, IUserContextCallback>();
 
-        public ContextCallbackManager(Wrapped.Server server, Ice.ObjectAdapter adapter, Action<Task> asyncCompleter)
+        public ContextCallbackManager(Steam.SteamListener steamListener, Wrapped.Server server, Ice.ObjectAdapter adapter, Action<Task> asyncCompleter)
             : base(asyncCompleter)
         {
+            SteamListener = steamListener;
             Server = server;
             IcePrx = Murmur.ServerContextCallbackPrxHelper.uncheckedCast(adapter.addWithUUID(this));
         }
 
         public override Task ContextAction(string action, Murmur.User usr, int session, int channelid)
         {
-            var apiUser = new Plugins.UserWrapper(Server, usr);
+            var apiUser = new Plugins.UserWrapper(SteamListener, Server, usr);
 
             IServerContextCallback server;
             if (ServerCallbacks.TryGetValue(action, out server))
@@ -36,7 +38,7 @@ namespace Fancyauth.ContextCallbacks
 
             IUserContextCallback user;
             if (UserCallbacks.TryGetValue(action, out user))
-                return user.Run(apiUser, new Plugins.UserShim(Server, session));
+                return user.Run(apiUser, new Plugins.UserShim(SteamListener, Server, session));
 
             System.Diagnostics.Trace.WriteLine(action, "Unknown context callback action");
             return Task.FromResult<object>(null);

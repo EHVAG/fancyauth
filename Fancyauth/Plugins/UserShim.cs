@@ -6,18 +6,20 @@ namespace Fancyauth.Plugins
 {
     public class UserShim : IUserShim
     {
+        protected readonly Steam.SteamListener SteamListener;
         protected readonly Wrapped.Server Server;
         public int SessionId { get; private set; }
 
-        public UserShim(Wrapped.Server server, int session)
+        public UserShim(Steam.SteamListener steamListener, Wrapped.Server server, int session)
         {
+            SteamListener = steamListener;
             Server = server;
             SessionId = session;
         }
 
         async Task<IUser> IShim<IUser>.Load()
         {
-            return new UserWrapper(Server, await Server.GetState(SessionId));
+            return new UserWrapper(SteamListener, Server, await Server.GetState(SessionId));
         }
 
         Task IUserShim.Kick(string reason)
