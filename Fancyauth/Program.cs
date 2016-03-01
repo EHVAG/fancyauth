@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Fancyauth
 {
@@ -9,9 +10,12 @@ namespace Fancyauth
         {
             System.Data.Entity.Database.SetInitializer(new System.Data.Entity.MigrateDatabaseToLatestVersion<FancyContext, Migrations.Configuration>());
 
-            #if !DEBUG
+            using (var ctx = new FancyContext())
+                ctx.Albums.ToArray();
+
+#if !DEBUG
             System.Diagnostics.Debug.Listeners.Add(new ConsoleTraceListener(true));
-            #endif
+#endif
 
             new Fancyauth().ServerMain().Wait();
         }

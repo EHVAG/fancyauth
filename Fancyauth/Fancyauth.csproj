@@ -111,6 +111,10 @@
     <Compile Include="Migrations\201506081930540_SongSuggestionsCanBeDecided.Designer.cs">
       <DependentUpon>201506081930540_SongSuggestionsCanBeDecided.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201510021559456_GuestModelRework.cs" />
+    <Compile Include="Migrations\201510021559456_GuestModelRework.Designer.cs">
+      <DependentUpon>201510021559456_GuestModelRework.cs</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\Builtin\LockedChannels.cs" />
     <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />
@@ -150,13 +154,7 @@
     <Compile Include="Steam\SteamEventForwarder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="ContextCallbacks\" />
-    <Folder Include="Commands\" />
-    <Folder Include="Plugins\" />
-    <Folder Include="Plugins\Builtin\" />
-    <Folder Include="Steam\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="App.config" />
@@ -215,6 +213,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201506081930540_SongSuggestionsCanBeDecided.resx">
       <DependentUpon>201506081930540_SongSuggestionsCanBeDecided.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201510021559456_GuestModelRework.resx">
+      <DependentUpon>201510021559456_GuestModelRework.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>

@@ -26,7 +26,7 @@ namespace Fancyauth.Plugins
 
             long? steamid;
             using (var context = new FancyContext())
-                steamid = await context.Users.Where(x => x.Id == User.userid).Select(x => x.SteamId).SingleAsync();
+                steamid = await context.Users.Where(x => x.Id == User.userid).Select(x => x.Membership.SteamId).SingleAsync();
             return steamid.HasValue ? new UserSteamAdapter(SteamListener, steamid.Value) : null;
         }
 

@@ -47,13 +47,13 @@ namespace Fancyauth
                         await CommandMgr.HandleCommand(SteamListener, Server, user, msg.Skip(1));
 
                     if (senderEntity != null)
-                        context.Logs.Add(new LogEntry.ChatMessage { When = DateTimeOffset.Now, WhoU = senderEntity, Message = message.text });
+                        context.Logs.Add(new LogEntry.ChatMessage { When = DateTimeOffset.Now, Who = senderEntity, Message = message.text });
                 }
 
                 if (senderEntity != null)
                 {
                     var messagesInTheLastSeconds = await context.Logs.OfType<LogEntry.ChatMessage>()
-                        .Where(x => x.WhoUId == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTimeOffset.Now, -5)).CountAsync();
+                        .Where(x => x.Who.Id == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTimeOffset.Now, -5)).CountAsync();
                     if (messagesInTheLastSeconds >= 3)
                         await Server.KickUser(user.session, "Who are you, my evil twin?! [stop spamming]");
                 }
@@ -74,26 +74,27 @@ namespace Fancyauth
                 {
                     var userNotificationsQuery = from usr in context.Users
                                                  where usr.Id == user.userid
-                                                 join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.WhoU.Id into connectedEvents
+                                                 join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.Who.Id into connectedEvents
                                                  let lastConnection = connectedEvents.Max(x => x.When)
                                                  join notific in context.OfflineNotifications on usr.Id equals notific.Recipient.Id into notifications
-                                                 select new { usr, notifications = notifications.Where(x => x.When > lastConnection) };
+                                                 select new { usr, usr.Membership, usr.PersistentGuest.Godfathers, notifications = notifications.Where(x => x.When > lastConnection) };
                     var res = await userNotificationsQuery.SingleAsync();
                     foreach (var notify in res.notifications)
                         await Server.SendMessage(user.session, notify.Message);
 
-                    logEntry.WhoU = res.usr;
+                    logEntry.Who = res.usr;
                 }
                 else
                 {
-                    // guest handoff
+                    /*// guest handoff
                     var assoc = await context.GuestAssociations.FindAsync(user.name);
                     assoc.Session = user.session;
 
                     logEntry.WhoI = assoc.Invite;
 
                     await Server.AddUserToGroup(0, user.session, "Gast"); // add guests to the guest group
-                    // TODO: move guests to the guest channel
+                    // TODO: move guests to the guest channel*/
+                    throw new NotImplementedException();
                 }
 
                 context.Logs.Add(logEntry);
@@ -104,6 +105,8 @@ namespace Fancyauth
 
         public override async Task UserDisconnected(Murmur.User user)
         {
+            throw new NotImplementedException();
+            /*
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
             {
@@ -120,7 +123,7 @@ namespace Fancyauth
 
                 await context.SaveChangesAsync();
                 transact.Commit();
-            }
+            }*/
         }
 
         public override async Task ChannelCreated(Murmur.Channel chan)

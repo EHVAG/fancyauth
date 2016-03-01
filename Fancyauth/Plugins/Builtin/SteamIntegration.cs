@@ -6,6 +6,7 @@ using Fancyauth.API;
 using SteamKit2;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Data.Entity;
 
 namespace Fancyauth.Plugins.Builtin
 {
@@ -17,8 +18,8 @@ namespace Fancyauth.Plugins.Builtin
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
             {
-                var dbUser = await context.Users.FindAsync(user.UserId);
-                dbUser.SteamId = steam64;
+                var dbUser = await context.Users.Include(x => x.Membership).SingleAsync(x => x.Id == user.UserId);
+                dbUser.Membership.SteamId = steam64;
                 await context.SaveChangesAsync();
                 transact.Commit();
             }
