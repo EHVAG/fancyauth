@@ -47,6 +47,8 @@ ORDER BY ts_rank_cd(dbo.songs_build_ftsvec(s), query); ", search);
         public virtual DbSet<Channel> Channels { get; set; }
         public virtual DbSet<Channel.InfoChange> ChannelInfoChanges { get; set; }
 
+        public virtual DbSet<Rude> Rudes { get; set; }
+
         #region MusiG
         public virtual DbSet<Album> Albums { get; set; }
         public virtual DbSet<Genre> Genres { get; set; }
