@@ -38,6 +38,7 @@
     <Compile Include="CommandBinder.cs" />
     <Compile Include="ProxyCC.cs" />
     <Compile Include="ContextCallbackAttribute.cs" />
+    <Compile Include="FancyPluginBase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

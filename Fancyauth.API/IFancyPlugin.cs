@@ -6,7 +6,7 @@ namespace Fancyauth.API
 {
     public interface IFancyPlugin
     {
-        void Init();
+        Task Init();
 
         Task OnUserConnected(IUser user);
         Task OnUserModified(IUser user);

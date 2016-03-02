@@ -46,9 +46,10 @@ namespace Fancyauth.Plugins
                 catalog.Catalogs.Add(new DirectoryCatalog("plugins"));
             var container = new CompositionContainer(catalog);
             container.ComposeParts(this);
+        }
 
-            foreach (var plugin in Plugins)
-                plugin.Init();
+        public Task Init() {
+            return Task.WhenAll(Plugins.Select(p => p.Init()));
         }
 
         public override Task UserConnected(Murmur.User user)
