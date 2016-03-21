@@ -68,36 +68,35 @@ namespace Fancyauth
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                var logEntry = context.Logs.Add(new LogEntry.Connected { When = DateTimeOffset.Now });
+                var userNotificationsQuery = from usr in context.Users
+                                             where usr.Id == user.userid
+                                             join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.Who.Id into connectedEvents
+                                             let lastConnection = connectedEvents.Max(x => x.When)
+                                             join notific in context.OfflineNotifications on usr.Id equals notific.Recipient.Id into notifications
+                                             select new { usr, usr.Membership, usr.GuestInvite.Inviter, usr.PersistentGuest.Godfathers,
+                                                 notifications = notifications.Where(x => x.When > lastConnection) };
+                var res = await userNotificationsQuery.SingleAsync();
+                foreach (var notify in res.notifications)
+                    await Server.SendMessage(user.session, notify.Message);
 
-                if (user.userid > 0)
+                if (res.Membership == null)
                 {
-                    var userNotificationsQuery = from usr in context.Users
-                                                 where usr.Id == user.userid
-                                                 join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.Who.Id into connectedEvents
-                                                 let lastConnection = connectedEvents.Max(x => x.When)
-                                                 join notific in context.OfflineNotifications on usr.Id equals notific.Recipient.Id into notifications
-                                                 select new { usr, usr.Membership, usr.PersistentGuest.Godfathers, notifications = notifications.Where(x => x.When > lastConnection) };
-                    var res = await userNotificationsQuery.SingleAsync();
-                    foreach (var notify in res.notifications)
-                        await Server.SendMessage(user.session, notify.Message);
-
-                    logEntry.Who = res.usr;
-                }
-                else
-                {
-                    /*// guest handoff
-                    var assoc = await context.GuestAssociations.FindAsync(user.name);
-                    assoc.Session = user.session;
-
-                    logEntry.WhoI = assoc.Invite;
-
-                    await Server.AddUserToGroup(0, user.session, "Gast"); // add guests to the guest group
-                    // TODO: move guests to the guest channel*/
-                    throw new NotImplementedException();
+                    var onlineUsers = await Server.GetUsers();
+                    var godfathers = res.Godfathers?.Select(x => x.UserId) ?? new[] { res.Inviter.Id };
+                    if (!godfathers.Intersect(onlineUsers.Select(x => x.Value.userid)).Any())
+                    {
+                        await Server.KickUser(user.session, "Inviter not online.");
+                        return;
+                    }
                 }
 
-                context.Logs.Add(logEntry);
+                // TODO: move guests to the guest channel
+
+                context.Logs.Add(new LogEntry.Connected
+                {
+                    When = DateTimeOffset.Now,
+                    Who = res.usr,
+                });
                 await context.SaveChangesAsync();
                 transact.Commit();
             }
@@ -105,25 +104,18 @@ namespace Fancyauth
 
         public override async Task UserDisconnected(Murmur.User user)
         {
-            throw new NotImplementedException();
-            /*
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
             {
-                var log = context.Logs.Add(new LogEntry.Disconnected { When = DateTimeOffset.Now });
-                if (user.userid > 0)
-                    log.WhoU = context.Users.Attach(new User { Id = user.userid });
-                else
+                context.Logs.Add(new LogEntry.Disconnected
                 {
-                    // remove guest assoc
-                    var assoc = await context.GuestAssociations.FindAsync(user.name);
-                    context.GuestAssociations.Remove(assoc);
-                    log.WhoI = assoc.Invite;
-                }
+                    When = DateTimeOffset.Now,
+                    Who = context.Users.Attach(new User { Id = user.userid }),
+                });
 
                 await context.SaveChangesAsync();
                 transact.Commit();
-            }*/
+            }
         }
 
         public override async Task ChannelCreated(Murmur.Channel chan)
