@@ -70,7 +70,8 @@ namespace Fancyauth
                     // Let's first check for guest invites
                     pw = pw.Trim();
                     var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
-                    if (invite != null) {
+                    if (invite != null)
+                    {
                         // Temporary guest.
                         // In the reworked guest mechanics, we really create a new User for every single temporary guest login.
                         // Not perfect but there doesn't seem to be a better way.
@@ -79,21 +80,26 @@ namespace Fancyauth
                             Name = name,
                             GuestInvite = invite,
                         };
-                    } else {
+                    }
+                    else
+                    {
                         if (!certstrong)
                             return Wrapped.AuthenticationResult.Forbidden();
 
                         // New cert for existing user?
-                        foreach (System.Collections.ICollection sans in bouncyCert.GetSubjectAlternativeNames()) {
+                        foreach (System.Collections.ICollection sans in bouncyCert.GetSubjectAlternativeNames())
+                        {
                             var enm = sans.GetEnumerator();
                             enm.MoveNext();
                             enm.MoveNext();
                             var val = enm.Current as string;
                             var match = Regex.Match(val ?? String.Empty, "^([^@]*)@user.mumble.ehvag.de$");
-                            if (match.Success) {
+                            if (match.Success)
+                            {
                                 var oldName = match.Groups[1].Captures[0].Value;
                                 var existingUser = await context.Users.Include(x => x.CertCredentials).SingleOrDefaultAsync(x => x.Name == oldName && x.CertCredentials.CertSerial < certSerial);
-                                if (existingUser != null) {
+                                if (existingUser != null)
+                                {
                                     existingUser.Name = subCN;
                                     existingUser.CertCredentials.CertSerial = certSerial.Value;
                                     existingUser.CertCredentials.Fingerprint = fingerprint;
@@ -103,9 +109,11 @@ namespace Fancyauth
                             }
                         }
 
-                        if (user == null) {
+                        if (user == null)
+                        {
                             // no existing user found, so create new user
-                            user = context.Users.Add(new User {
+                            user = context.Users.Add(new User
+                            {
                                 Name = subCN,
                                 CertCredentials = new CertificateCredentials
                                 {
