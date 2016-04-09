@@ -48,7 +48,7 @@ namespace Fancyauth
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
             {
                 user = await context.Users.Include(x => x.Membership).Include(x => x.PersistentGuest)
-                    .Include(x => x.PersistentGuest.Godfathers).SingleOrDefaultAsync(x => x.CertCredentials.Fingerprint == fingerprint);
+                    .Include(x => x.PersistentGuest.Godfathers).SingleOrDefaultAsync(x => x.CertFingerprint == fingerprint);
 
 				pw = pw.Trim();
 				var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
@@ -60,7 +60,7 @@ namespace Fancyauth
                     // * old temporary guest
                     //
                     // As this is the /authenticator/, we can't query online users because that would deadlock murmur's main thread.
-                    // As someone with CertificateCredentials is definitely allowed to connect, we just let them pass here and
+                    // As PersistentGuests and Members are definitely allowed to connect, we just let them pass here and
                     // kick them in OnUserConnected if they're missing a godfather.
 
                     // if he is an old temporary guest with valid invite → set new invite, otherwise deny access
@@ -90,11 +90,8 @@ namespace Fancyauth
                         user = context.Users.Add(new User()
                         {
                             Name = name,
-                            CertCredentials = new CertificateCredentials
-                            {
-                                Fingerprint = fingerprint,
-                                CertSerial = certSerial.Value,
-                            },
+                            CertFingerprint = fingerprint,
+                            CertSerial = certSerial.Value,
                             GuestInvite = invite,
                         });
                     } else {
@@ -111,11 +108,11 @@ namespace Fancyauth
                             var match = Regex.Match(val ?? String.Empty, "^([^@]*)@user.mumble.ehvag.de$");
                             if (match.Success) {
                                 var oldName = match.Groups[1].Captures[0].Value;
-                                var existingUser = await context.Users.Include(x => x.CertCredentials).SingleOrDefaultAsync(x => x.Name == oldName && x.CertCredentials.CertSerial < certSerial);
+                                var existingUser = await context.Users.SingleOrDefaultAsync(x => x.Name == oldName && x.CertSerial < certSerial);
                                 if (existingUser != null) {
                                     existingUser.Name = subCN;
-                                    existingUser.CertCredentials.CertSerial = certSerial.Value;
-                                    existingUser.CertCredentials.Fingerprint = fingerprint;
+                                    existingUser.CertSerial = certSerial.Value;
+                                    existingUser.CertFingerprint = fingerprint;
                                     user = existingUser;
                                     break;
                                 }
@@ -128,12 +125,9 @@ namespace Fancyauth
                             user = context.Users.Add(new User
                             {
                                 Name = subCN,
-                                CertCredentials = new CertificateCredentials
-                                {
-                                    Fingerprint = fingerprint,
-                                    CertSerial = certSerial.Value,
-                                },
-                                Membership = new Membership()
+                                CertFingerprint = fingerprint,
+                                CertSerial = certSerial.Value,
+                                Membership = new Membership(),
                             });
                         }
                     }

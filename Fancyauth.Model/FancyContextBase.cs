@@ -30,7 +30,6 @@ namespace Fancyauth.Model
             modelBuilder.Entity<PersistentGuest>()
                 .HasMany(x => x.Godfathers).WithMany(x => x.Godfatherships).Map(x => x.ToTable("PG_Godfathers"));
 
-            modelBuilder.Entity<User>().HasOptional(x => x.CertCredentials).WithRequired(x => x.User).WillCascadeOnDelete();
             modelBuilder.Entity<User>().HasOptional(x => x.Membership).WithRequired(x => x.User).WillCascadeOnDelete();
             modelBuilder.Entity<User>().HasOptional(x => x.PersistentGuest).WithRequired(x => x.User).WillCascadeOnDelete();
             modelBuilder.Entity<User>().HasOptional(x => x.GuestInvite).WithMany().WillCascadeOnDelete();
@@ -49,7 +48,6 @@ ORDER BY ts_rank_cd(dbo.songs_build_ftsvec(s), query); ", search);
         #region UserAttributes
         public virtual DbSet<Membership> Memberships { get; set; }
         public virtual DbSet<PersistentGuest> PersistentGuests { get; set; }
-        public virtual DbSet<CertificateCredentials> CertificateCredentials { get; set; }
         #endregion
         public virtual DbSet<Invite> Invites { get; set; }
         public virtual DbSet<OfflineNotification> OfflineNotifications { get; set; }

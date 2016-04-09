@@ -15,19 +15,7 @@ namespace Fancyauth.Migrations
             DropIndex("dbo.LogEntries", new[] { "WhoUId" });
             DropIndex("dbo.LogEntries", new[] { "WhoIId" });
             RenameColumn(table: "dbo.LogEntries", name: "WhoUId", newName: "Who_Id");
-            CreateTable(
-                "dbo.CertificateCredentials",
-                c => new
-                    {
-                        UserId = c.Int(nullable: false),
-                        Fingerprint = c.String(nullable: false),
-                        CertSerial = c.Long(nullable: false),
-                    })
-                .PrimaryKey(t => t.UserId)
-                .ForeignKey("dbo.Users", t => t.UserId, cascadeDelete: true)
-                .Index(t => t.UserId)
-                .Index(t => t.Fingerprint, unique: true);
-            
+
             CreateTable(
                 "dbo.Memberships",
                 c => new
@@ -78,20 +66,14 @@ namespace Fancyauth.Migrations
             AddForeignKey("dbo.Users", "GuestInvite_Id", "dbo.Invites", "Id", cascadeDelete: true);
             AddForeignKey("dbo.LogEntries", "Who_Id", "dbo.Users", "Id", cascadeDelete: true);
 
-            // Now move data from dbo.Users to dbo.Memberships and dbo.CertificateCredentials
+            // Now move data from dbo.Users to dbo.Memberships
             Sql(@"
 INSERT INTO dbo.""Memberships"" (""UserId"", ""Texture"", ""Comment"", ""SteamId"")
 SELECT ""Id"", ""Texture"", ""Comment"", ""SteamId""
 FROM dbo.""Users""
 ");
-            Sql(@"
-INSERT INTO dbo.""CertificateCredentials"" (""UserId"", ""Fingerprint"", ""CertSerial"")
-SELECT ""Id"", ""Fingerprint"", ""CertSerial""
-FROM dbo.""Users""
-");
 
-            DropColumn("dbo.Users", "Fingerprint");
-            DropColumn("dbo.Users", "CertSerial");
+            RenameColumn("dbo.Users", "Fingerprint", "CertFingerprint");
             DropColumn("dbo.Users", "Texture");
             DropColumn("dbo.Users", "Comment");
             DropColumn("dbo.Users", "SteamId");
@@ -124,7 +106,6 @@ FROM dbo.""Users""
             DropForeignKey("dbo.PG_Godfathers", "Membership_UserId", "dbo.Memberships");
             DropForeignKey("dbo.PG_Godfathers", "PersistentGuest_UserId", "dbo.PersistentGuests");
             DropForeignKey("dbo.Users", "GuestInvite_Id", "dbo.Invites");
-            DropForeignKey("dbo.CertificateCredentials", "UserId", "dbo.Users");
             DropIndex("dbo.PG_Godfathers", new[] { "Membership_UserId" });
             DropIndex("dbo.PG_Godfathers", new[] { "PersistentGuest_UserId" });
             DropIndex("dbo.LogEntries", new[] { "Who_Id" });
@@ -132,28 +113,23 @@ FROM dbo.""Users""
             DropIndex("dbo.PersistentGuests", new[] { "UserId" });
             DropIndex("dbo.Memberships", new[] { "UserId" });
             DropIndex("dbo.Users", new[] { "GuestInvite_Id" });
-            DropIndex("dbo.CertificateCredentials", new[] { "Fingerprint" });
-            DropIndex("dbo.CertificateCredentials", new[] { "UserId" });
             AlterColumn("dbo.LogEntries", "Who_Id", c => c.Int());
             DropColumn("dbo.Users", "GuestInvite_Id");
+            RenameColumn("dbo.Users", "CertFingerprint", "Fingerprint");
 
             // Move our data back before we drop these
             Sql(@"
 UPDATE dbo.""Users""
-SET ""Fingerprint"" = cc.""Fingerprint"",
-    ""CertSerial"" = cc.""CertSerial"",
-    ""Texture"" = m.""Texture"",
+SET ""Texture"" = m.""Texture"",
     ""Comment"" = m.""Comment"",
     ""SteamId"" = m.""SteamId""
-FROM dbo.""CertificateCredentials"" cc, dbo.""Memberships"" m
-WHERE ""Id"" = cc.""UserId""
-AND   ""Id"" = m.""UserId""
+FROM dbo.""Memberships"" m
+WHERE ""Id"" = m.""UserId""
 ");
 
             DropTable("dbo.PG_Godfathers");
             DropTable("dbo.PersistentGuests");
             DropTable("dbo.Memberships");
-            DropTable("dbo.CertificateCredentials");
             RenameColumn(table: "dbo.LogEntries", name: "Who_Id", newName: "WhoUId");
             CreateIndex("dbo.LogEntries", "WhoIId");
             CreateIndex("dbo.LogEntries", "WhoUId");

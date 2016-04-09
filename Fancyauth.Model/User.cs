@@ -13,15 +13,17 @@ namespace Fancyauth.Model
         [Required, Index(IsUnique = true)]
         public string Name { get; set; }
 
+        [Required, Index(IsUnique = true)]
+        public string CertFingerprint { get; set; }
+
+        [Required]
+        public long CertSerial { get; set; }
+
         // Modelling as optional components because (as always) OO sucks:
         /// <summary>
         /// Real members with CA-signed certificate
         /// </summary>
         public virtual Membership Membership { get; set; }
-        /// <summary>
-        /// Certificate of User (must not be signed by ehvag mumble root ca)
-        /// </summary>
-        public virtual CertificateCredentials CertCredentials { get; set; }
         /// <summary>
         /// persistent guest properties
         /// </summary>

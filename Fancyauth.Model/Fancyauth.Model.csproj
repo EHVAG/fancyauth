@@ -49,7 +49,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UserAttribute\CertificateCredentials.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="FancyContextBase.cs" />
     <Compile Include="Invite.cs" />
