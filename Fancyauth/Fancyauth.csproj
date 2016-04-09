@@ -115,6 +115,7 @@
     <Compile Include="Migrations\201510021559456_GuestModelRework.Designer.cs">
       <DependentUpon>201510021559456_GuestModelRework.cs</DependentUpon>
     </Compile>
+    <Compile Include="Plugins\Builtin\Godfather.cs" />
     <Compile Include="Plugins\Builtin\LockedChannels.cs" />
     <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />

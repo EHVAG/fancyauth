@@ -45,41 +45,60 @@ namespace Fancyauth
 
             User user;
             using (var context = await FancyContext.Connect())
-            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
+            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
                 user = await context.Users.Include(x => x.Membership).Include(x => x.PersistentGuest)
                     .Include(x => x.PersistentGuest.Godfathers).SingleOrDefaultAsync(x => x.CertCredentials.Fingerprint == fingerprint);
 
+				pw = pw.Trim();
+				var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
                 if (user != null)
                 {
                     // Known user. Why?
                     // * member
                     // * persistent guest
+                    // * old temporary guest
                     //
                     // As this is the /authenticator/, we can't query online users because that would deadlock murmur's main thread.
                     // As someone with CertificateCredentials is definitely allowed to connect, we just let them pass here and
                     // kick them in OnUserConnected if they're missing a godfather.
+
+                    // if he is an old temporary guest with valid invite → set new invite, otherwise deny access
+                    if (user.Membership == null && user.PersistentGuest == null)
+                    {
+	                    if (invite != null)
+	                    {
+		                    user.GuestInvite = invite;
+	                    }
+	                    else
+						{
+							return Wrapped.AuthenticationResult.Forbidden();
+						}
+                    }
                 }
                 else
                 {
                     // Unknown user. Why?
-                    // * temporary guest
+                    // * new temporary guest
                     // * new cert for existing user
                     // * new user
                     // * random person on the internet
 
                     // Let's first check for guest invites
-                    pw = pw.Trim();
-                    var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
                     if (invite != null) {
-                        // Temporary guest.
-                        // In the reworked guest mechanics, we really create a new User for every single temporary guest login.
-                        // Not perfect but there doesn't seem to be a better way.
-                        user = new User
+                        // new temporary guest → will be added to db
+                        user = context.Users.Add(new User()
                         {
                             Name = name,
+                            CertCredentials = new CertificateCredentials
+                            {
+                                Fingerprint = fingerprint,
+                                CertSerial = certSerial.Value,
+                            },
                             GuestInvite = invite,
-                        };
+                        });
                     } else {
+                       	// random person on the internet; has no signed or valid certificate
                         if (!certstrong)
                             return Wrapped.AuthenticationResult.Forbidden();
 
@@ -103,9 +122,11 @@ namespace Fancyauth
                             }
                         }
 
-                        if (user == null) {
+                        if (user == null)
+                        {
                             // no existing user found, so create new user
-                            user = context.Users.Add(new User {
+                            user = context.Users.Add(new User
+                            {
                                 Name = subCN,
                                 CertCredentials = new CertificateCredentials
                                 {

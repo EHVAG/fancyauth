@@ -14,9 +14,22 @@ namespace Fancyauth.Model
         public string Name { get; set; }
 
         // Modelling as optional components because (as always) OO sucks:
+        /// <summary>
+        /// Real members with CA-signed certificate
+        /// </summary>
         public virtual Membership Membership { get; set; }
+        /// <summary>
+        /// Certificate of User (must not be signed by ehvag mumble root ca)
+        /// </summary>
         public virtual CertificateCredentials CertCredentials { get; set; }
+        /// <summary>
+        /// persistent guest properties
+        /// </summary>
         public virtual PersistentGuest PersistentGuest { get; set; }
+        /// <summary>
+        /// Invite code - only set if user is not member and not PersistentGuest;
+        /// only if he is actually a Guest with an Invite code
+        /// </summary>
         public virtual Invite GuestInvite { get; set; }
     }
 }

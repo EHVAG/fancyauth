@@ -10,6 +10,7 @@ using Fancyauth.Commands;
 using Fancyauth.ContextCallbacks;
 using Fancyauth.Model;
 using Fancyauth.Plugins;
+using Fancyauth.Plugins.Builtin;
 using Fancyauth.Wrapped;
 
 namespace Fancyauth
@@ -79,18 +80,24 @@ namespace Fancyauth
                 foreach (var notify in res.notifications)
                     await Server.SendMessage(user.session, notify.Message);
 
+                // user is temporary
                 if (res.Membership == null)
                 {
+	                // worst hack euw: a non-permanent guest can only join if his inviter is online
+	                //					permanent guests can only join if at least one godfather is online
                     var onlineUsers = await Server.GetUsers();
                     var godfathers = res.Godfathers?.Select(x => x.UserId) ?? new[] { res.Inviter.Id };
                     if (!godfathers.Intersect(onlineUsers.Select(x => x.Value.userid)).Any())
                     {
-                        await Server.KickUser(user.session, "Inviter not online.");
+                        await Server.KickUser(user.session, "No Godfather online.");
                         return;
                     }
+					if (res.Inviter != null) {
+						// TODO: move guests to the guest channel
+						// TODO: add "Mark as Guestchannel" plugin
+					}
                 }
 
-                // TODO: move guests to the guest channel
 
                 context.Logs.Add(new LogEntry.Connected
                 {
