@@ -21,7 +21,7 @@ namespace Fancyauth.Plugins
         async Task<IUserSteamAdapter> IUser.GetSteamAdapter()
         {
             if (User.userid < 0)
-                // guests aren't even in the DB so welp
+                // guests have no rights
                 return null;
 
             long? steamid;

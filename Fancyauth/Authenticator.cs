@@ -66,14 +66,15 @@ namespace Fancyauth
                     // if he is an old temporary guest with valid invite → set new invite, otherwise deny access
                     if (user.Membership == null && user.PersistentGuest == null)
                     {
-	                    if (invite != null)
-	                    {
-		                    user.GuestInvite = invite;
-	                    }
-	                    else
-						{
-							return Wrapped.AuthenticationResult.Forbidden();
-						}
+                        if (invite != null)
+                        {
+                            user.GuestInvite = invite;
+                            user.Name = name;
+                        }
+                        else
+                        {
+                            return Wrapped.AuthenticationResult.Forbidden();
+                        }
                     }
                 }
                 else

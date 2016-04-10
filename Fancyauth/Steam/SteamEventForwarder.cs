@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Linq;
 using System.Data.Entity;
 using System.Threading.Tasks;
@@ -7,11 +8,15 @@ using Fancyauth.Steam;
 
 namespace Fancyauth.Steam
 {
+    /// <summary>
+    /// This class forwards stuffz from Steam to Mumble
+    /// </summary>
     public class SteamEventForwarder : ISteamEventForwarder
     {
         async Task ISteamEventForwarder.OnChatMessage(SteamListener steamListener, SteamID sender, string message)
         {
             using (var context = await FancyContext.Connect())
+            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
             {
                 var steam64 = unchecked((long)sender.ConvertToUInt64());
                 var currentGame = unchecked((int)steamListener.GetCurrentGameId(sender).Value);
@@ -32,6 +37,7 @@ namespace Fancyauth.Steam
                     steamListener.SendMessage(sender, "Unknown command");
 
                 await context.SaveChangesAsync();
+                transact.Commit();
             }
         }
     }
