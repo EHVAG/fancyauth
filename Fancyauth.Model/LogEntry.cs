@@ -12,11 +12,8 @@ namespace Fancyauth.Model
         [Required, Index]
         public DateTimeOffset When { get; set; }
 
-        public virtual User WhoU { get; set; }
-        public virtual Invite WhoI { get; set; }
-
-        public int? WhoUId { get; set; }
-        public int? WhoIId { get; set; }
+        [Required]
+        public virtual User Who { get; set; }
 
         public enum Discriminator : int
         {

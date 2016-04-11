@@ -8,17 +8,19 @@ namespace Fancyauth.Plugins
 {
     public class ServerWrapper : IServer
     {
+        private readonly Steam.SteamListener SteamListener;
         private readonly Wrapped.Server Server;
 
-        public ServerWrapper(Wrapped.Server server)
+        public ServerWrapper(Steam.SteamListener steamListener, Wrapped.Server server)
         {
+            SteamListener = steamListener;
             Server = server;
         }
 
         async Task<IEnumerable<IUser>> IServer.GetOnlineUsers()
         {
             var userDict = await Server.GetUsers();
-            return userDict.Values.Select(u => new UserWrapper(Server, u)); // TODO: we might wanna call ToArray() here
+            return userDict.Values.Select(u => new UserWrapper(SteamListener, Server, u)); // TODO: we might wanna call ToArray() here
         }
 
         async Task<IEnumerable<IChannel>> IServer.GetChannels()

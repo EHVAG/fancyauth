@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net;
+using System.Linq;
+using System.Data.Entity;
 using System.Threading.Tasks;
 using Fancyauth.API;
 using Fancyauth.Model;
@@ -10,10 +12,22 @@ namespace Fancyauth.Plugins
     {
         private Murmur.User User;
 
-        public UserWrapper(Wrapped.Server server, Murmur.User user)
-            : base(server, user.session)
+        public UserWrapper(Steam.SteamListener steamListener, Wrapped.Server server, Murmur.User user)
+            : base(steamListener, server, user.session)
         {
             User = user;
+        }
+
+        async Task<IUserSteamAdapter> IUser.GetSteamAdapter()
+        {
+            if (User.userid < 0)
+                // guests have no rights
+                return null;
+
+            long? steamid;
+            using (var context = new FancyContext())
+                steamid = await context.Users.Where(x => x.Id == User.userid).Select(x => x.Membership.SteamId).SingleAsync();
+            return steamid.HasValue ? new UserSteamAdapter(SteamListener, steamid.Value) : null;
         }
 
         Task IReadModifyWriteObject.SaveChanges()

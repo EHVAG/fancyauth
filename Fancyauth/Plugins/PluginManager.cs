@@ -30,13 +30,15 @@ namespace Fancyauth.Plugins
         [ImportMany]
         public IEnumerable<IFancyPlugin> Plugins { get; private set; }
 
+        private readonly Steam.SteamListener SteamListener;
         private readonly Wrapped.Server WServer;
 
-        public PluginManager(Action<Task> asyncCompleter, Wrapped.Server wserver, ContextCallbackManager ccmgr, CommandManager cmdmgr)
+        public PluginManager(Action<Task> asyncCompleter, Steam.SteamListener steamListener, Wrapped.Server wserver, ContextCallbackManager ccmgr, CommandManager cmdmgr)
             : base(asyncCompleter)
         {
+            SteamListener = steamListener;
             WServer = wserver;
-            Server = new ServerWrapper(wserver);
+            Server = new ServerWrapper(steamListener, wserver);
             ContextCallbackManager = ccmgr;
             CommandManager = cmdmgr;
 
@@ -53,19 +55,19 @@ namespace Fancyauth.Plugins
 
         public override Task UserConnected(Murmur.User user)
         {
-            var apiUser = new UserWrapper(WServer, user);
+            var apiUser = new UserWrapper(SteamListener, WServer, user);
             return Task.WhenAll(Plugins.Select(x => x.OnUserConnected(apiUser)));
         }
 
         public override Task UserStateChanged(Murmur.User user)
         {
-            var apiUser = new UserWrapper(WServer, user);
+            var apiUser = new UserWrapper(SteamListener, WServer, user);
             return Task.WhenAll(Plugins.Select(x => x.OnUserModified(apiUser)));
         }
 
         public override Task UserDisconnected(Murmur.User user)
         {
-            var apiUser = new UserWrapper(WServer, user);
+            var apiUser = new UserWrapper(SteamListener, WServer, user);
             return Task.WhenAll(Plugins.Select(x => x.OnUserDisconnected(apiUser)));
         }
 
@@ -89,7 +91,7 @@ namespace Fancyauth.Plugins
 
         public override Task UserTextMessage(Murmur.User user, Murmur.TextMessage message)
         {
-            var apiUser = new UserWrapper(WServer, user);
+            var apiUser = new UserWrapper(SteamListener, WServer, user);
             var destChans = message.channels.Select(x => new ChannelShim(WServer, x)).ToArray();
             return Task.WhenAll(Plugins.Select(x => x.OnChatMessage(apiUser, destChans, message.text)));
         }

@@ -51,9 +51,9 @@
   <ItemGroup>
     <Compile Include="Channel.cs" />
     <Compile Include="FancyContextBase.cs" />
-    <Compile Include="GuestAssociation.cs" />
     <Compile Include="Invite.cs" />
     <Compile Include="LogEntry.cs" />
+    <Compile Include="UserAttribute\Membership.cs" />
     <Compile Include="MusiG\Album.cs" />
     <Compile Include="MusiG\Genre.cs" />
     <Compile Include="MusiG\Interpret.cs" />
@@ -63,6 +63,7 @@
     <Compile Include="OfflineNotification.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteamChatForwardingAssociation.cs" />
+    <Compile Include="UserAttribute\PersistentGuest.cs" />
     <Compile Include="User.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Fancyauth.Model;
 using Fancyauth.Model.MusiG;
 using System.Data.Entity.Infrastructure;
+using Fancyauth.Model.UserAttribute;
 
 namespace Fancyauth.Model
 {
@@ -25,6 +26,13 @@ namespace Fancyauth.Model
 
             modelBuilder.Entity<Song>()
                 .HasMany(x => x.AdditionalInterprets).WithMany().Map(x => x.ToTable("Songs_AdditionalInterprets"));
+
+            modelBuilder.Entity<PersistentGuest>()
+                .HasMany(x => x.Godfathers).WithMany(x => x.Godfatherships).Map(x => x.ToTable("PG_Godfathers"));
+
+            modelBuilder.Entity<User>().HasOptional(x => x.Membership).WithRequired(x => x.User).WillCascadeOnDelete();
+            modelBuilder.Entity<User>().HasOptional(x => x.PersistentGuest).WithRequired(x => x.User).WillCascadeOnDelete();
+            modelBuilder.Entity<User>().HasOptional(x => x.GuestInvite).WithMany().WillCascadeOnDelete();
         }
 
         public DbSqlQuery<Song> SearchSong(string search)
@@ -37,8 +45,11 @@ ORDER BY ts_rank_cd(dbo.songs_build_ftsvec(s), query); ", search);
         }
 
         public virtual DbSet<User> Users { get; set; }
+        #region UserAttributes
+        public virtual DbSet<Membership> Memberships { get; set; }
+        public virtual DbSet<PersistentGuest> PersistentGuests { get; set; }
+        #endregion
         public virtual DbSet<Invite> Invites { get; set; }
-        public virtual DbSet<GuestAssociation> GuestAssociations { get; set; }
         public virtual DbSet<OfflineNotification> OfflineNotifications { get; set; }
         public virtual DbSet<LogEntry> Logs { get; set; }
 

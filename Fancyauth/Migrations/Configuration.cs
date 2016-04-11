@@ -4,8 +4,6 @@ using System.Data.Entity.Migrations;
 using System.IO;
 using System.Linq;
 using Fancyauth.Model;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Fancyauth.Migrations
 {

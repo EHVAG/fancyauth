@@ -10,6 +10,7 @@ using Fancyauth.Model;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.X509;
+using Fancyauth.Model.UserAttribute;
 
 namespace Fancyauth
 {
@@ -42,45 +43,64 @@ namespace Fancyauth
                 // (no certs at all)
             }
 
-
             User user;
             using (var context = await FancyContext.Connect())
-            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
-                user = await context.Users.Where(x => x.Fingerprint == fingerprint).SingleOrDefaultAsync();
+            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                user = await context.Users.Include(x => x.Membership).Include(x => x.PersistentGuest)
+                    .Include(x => x.PersistentGuest.Godfathers).SingleOrDefaultAsync(x => x.CertFingerprint == fingerprint);
 
-                if (user == null) {
-                    // check for user migration
-                    // TODO: remove this once we got fingerprints everywhere
-                    user = await context.Users.Where(x => x.Fingerprint.StartsWith("imported") && x.CertSerial == certSerial).SingleOrDefaultAsync();
-                    if (user != null)
-                        user.Fingerprint = fingerprint;
+				pw = pw.Trim();
+				var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
+                if (user != null)
+                {
+                    // Known user. Why?
+                    // * member
+                    // * persistent guest
+                    // * old temporary guest
+                    //
+                    // As this is the /authenticator/, we can't query online users because that would deadlock murmur's main thread.
+                    // As PersistentGuests and Members are definitely allowed to connect, we just let them pass here and
+                    // kick them in OnUserConnected if they're missing a godfather.
+
+                    // if he is an old temporary guest with valid invite → set new invite, otherwise deny access
+                    if (user.Membership == null && user.PersistentGuest == null)
+                    {
+                        if (invite != null)
+                        {
+                            user.GuestInvite = invite;
+                            user.Name = name;
+                        }
+                        else
+                        {
+                            return Wrapped.AuthenticationResult.Forbidden();
+                        }
+                    }
                 }
-
-                if (user == null) {
+                else
+                {
                     // Unknown user. Why?
-                    // * guest
+                    // * new temporary guest
                     // * new cert for existing user
                     // * new user
                     // * random person on the internet
-                    var invite = await context.Invites.Where(x => (x.Code == pw.Trim()) && (x.ExpirationDate > DateTimeOffset.Now)).Select(x => new { x.Id, x.UseCount }).SingleOrDefaultAsync();
+
+                    // Let's first check for guest invites
                     if (invite != null) {
-                        var tmpinv = context.Invites.Attach(new Invite { Id = invite.Id, UseCount = invite.UseCount + 1 });
-                        context.GuestAssociations.Add(new GuestAssociation { Name = name, Invite = tmpinv });
-                        context.Entry(tmpinv).Property(x => x.UseCount).IsModified = true;
-                        context.Configuration.ValidateOnSaveEnabled = false;
-                        try {
-                            await context.SaveChangesAsync();
-                            transact.Commit();
-                            return Wrapped.AuthenticationResult.Fallthrough();
-                        } catch (System.Data.Entity.Validation.DbEntityValidationException ex) {
-                            foreach (var err in ex.EntityValidationErrors.SelectMany(x => x.ValidationErrors))
-                                Console.WriteLine("{0} - {1}", err.PropertyName, err.ErrorMessage);
-                            return Wrapped.AuthenticationResult.TryAgainLater();
-                        }
+                        // new temporary guest → will be added to db
+                        user = context.Users.Add(new User()
+                        {
+                            Name = name,
+                            CertFingerprint = fingerprint,
+                            CertSerial = certSerial.Value,
+                            GuestInvite = invite,
+                        });
                     } else {
+                       	// random person on the internet; has no signed or valid certificate
                         if (!certstrong)
                             return Wrapped.AuthenticationResult.Forbidden();
 
+                        // New cert for existing user?
                         foreach (System.Collections.ICollection sans in bouncyCert.GetSubjectAlternativeNames()) {
                             var enm = sans.GetEnumerator();
                             enm.MoveNext();
@@ -89,23 +109,26 @@ namespace Fancyauth
                             var match = Regex.Match(val ?? String.Empty, "^([^@]*)@user.mumble.ehvag.de$");
                             if (match.Success) {
                                 var oldName = match.Groups[1].Captures[0].Value;
-                                var existingUser = await context.Users.Where(x => x.Name == oldName && x.CertSerial < certSerial).SingleOrDefaultAsync();
+                                var existingUser = await context.Users.SingleOrDefaultAsync(x => x.Name == oldName && x.CertSerial < certSerial);
                                 if (existingUser != null) {
                                     existingUser.Name = subCN;
                                     existingUser.CertSerial = certSerial.Value;
-                                    existingUser.Fingerprint = fingerprint;
+                                    existingUser.CertFingerprint = fingerprint;
                                     user = existingUser;
                                     break;
                                 }
                             }
                         }
 
-                        if (user == null) {
+                        if (user == null)
+                        {
                             // no existing user found, so create new user
-                            user = context.Users.Add(new User {
+                            user = context.Users.Add(new User
+                            {
                                 Name = subCN,
-                                Fingerprint = fingerprint,
+                                CertFingerprint = fingerprint,
                                 CertSerial = certSerial.Value,
+                                Membership = new Membership(),
                             });
                         }
                     }
@@ -133,15 +156,15 @@ namespace Fancyauth
         public override async Task<byte[]> IdToTexture(int id)
         {
             using (var context = new FancyContext())
-                return await context.Users.Where(x => x.Id == id).Select(x => x.Texture).SingleOrDefaultAsync();
+                return await context.Memberships.Where(x => x.UserId == id).Select(x => x.Texture).SingleOrDefaultAsync();
         }
 
         public override async Task<Wrapped.AuthenticatorUpdateResult> SetTexture(int id, byte[] texture)
         {
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
-                var entity = new User { Id = id, Texture = texture };
-                context.Users.Attach(entity);
+                var entity = new Membership { UserId = id, Texture = texture };
+                context.Memberships.Attach(entity);
                 context.Entry(entity).Property(x => x.Texture).IsModified = true;
                 context.Configuration.ValidateOnSaveEnabled = false;
                 try {
@@ -158,10 +181,10 @@ namespace Fancyauth
         public override async Task<Dictionary<Murmur.UserInfo, string>> GetInfo(int id)
         {
             using (var context = new FancyContext()) {
-                var user = await context.Users.FindAsync(id);
+                var user = await context.Users.Include(x => x.Membership).SingleAsync(x => x.Id == id);
                 return new Dictionary<Murmur.UserInfo, string> {
                     { Murmur.UserInfo.UserName, user.Name },
-                    { Murmur.UserInfo.UserComment, user.Comment },
+                    { Murmur.UserInfo.UserComment, user.Membership?.Comment },
                 };
             }
         }
@@ -170,11 +193,11 @@ namespace Fancyauth
         {
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
-                var user = await context.Users.FindAsync(id);
+                var user = await context.Users.Include(x => x.Membership).SingleAsync(x => x.Id == id);
                 foreach (var kv in info) {
                     switch (kv.Key) {
                     case Murmur.UserInfo.UserComment:
-                        user.Comment = kv.Value;
+                        user.Membership.Comment = kv.Value;
                         break;
                     default:
                         System.Diagnostics.Trace.WriteLine(kv.Key, "Unhandled thing in SetInfo");

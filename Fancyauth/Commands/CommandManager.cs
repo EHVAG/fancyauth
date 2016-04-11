@@ -17,11 +17,11 @@ namespace Fancyauth.Commands
             _Commands.Add(name, func);
         }
 
-        public Task HandleCommand(Wrapped.Server server, Murmur.User caller, IEnumerable<string> cmd)
+        public Task HandleCommand(Steam.SteamListener steamListener, Wrapped.Server server, Murmur.User caller, IEnumerable<string> cmd)
         {
             CommandFunc func;
             if (_Commands.TryGetValue(cmd.FirstOrDefault(), out func))
-                return func(new Plugins.UserWrapper(server, caller), cmd.Skip(1));
+                return func(new Plugins.UserWrapper(steamListener, server, caller), cmd.Skip(1));
             else
                 return server.SendMessage(caller.session, "Unknown command");
         }
