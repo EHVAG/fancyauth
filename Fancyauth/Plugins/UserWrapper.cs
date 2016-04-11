@@ -20,10 +20,6 @@ namespace Fancyauth.Plugins
 
         async Task<IUserSteamAdapter> IUser.GetSteamAdapter()
         {
-            if (User.userid < 0)
-                // guests aren't even in the DB so welp
-                return null;
-
             long? steamid;
             using (var context = new FancyContext())
                 steamid = await context.Users.Where(x => x.Id == User.userid).Select(x => x.Membership.SteamId).SingleAsync();

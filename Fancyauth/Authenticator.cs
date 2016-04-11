@@ -75,14 +75,15 @@ namespace Fancyauth
                         // Temporary guest.
                         // In the reworked guest mechanics, we really create a new User for every single temporary guest login.
                         // Not perfect but there doesn't seem to be a better way.
-                        user = new User
+                        user = context.Users.Add(new User
                         {
                             Name = name,
                             GuestInvite = invite,
-                        };
+                        });
                     }
                     else
                     {
+                        // random person on the internet; has no signed or valid certificate
                         if (!certstrong)
                             return Wrapped.AuthenticationResult.Forbidden();
 

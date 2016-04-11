@@ -3,10 +3,16 @@ using System.ComponentModel.Composition;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 using Fancyauth.API;
 using Fancyauth.API.DB;
 using Fancyauth.APIUtil;
 using Fancyauth.Model;
+using Fancyauth.API.ContextCallbacks;
+using System.Data;
+using System.Data.Entity;
+using Fancyauth.Model.UserAttribute;
+using System.Collections.Generic;
 
 namespace Fancyauth.Plugins.Builtin
 {
@@ -39,10 +45,12 @@ namespace Fancyauth.Plugins.Builtin
                 codeBuilder.Append(PwdChars[rand[i] & PwdIndexMask]);
 
             var code = codeBuilder.ToString();
-            using (var context = await ContextProvider.Connect()) {
-                context.Invites.Add(new Invite {
+            using (var context = await ContextProvider.Connect())
+            {
+                context.Invites.Add(new Invite
+                {
                     Code = code,
-                    Inviter = context.Users.Attach(new Model.User { Id = usr.UserId }),
+                    Inviter = context.Users.Attach(new User { Id = usr.UserId }),
                     ExpirationDate = DateTimeOffset.Now.AddHours(1),
                 });
 
@@ -50,6 +58,92 @@ namespace Fancyauth.Plugins.Builtin
             }
 
             await usr.SendMessage("Invite code: " + code);
+        }
+
+        // happens not often enough to actually be a ContextCallback
+        [Command]
+        public async Task RevokeGodfather(IUser actor, string targetName)
+        {
+            using (var context = await ContextProvider.Connect())
+            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                var guest = await context.Users.Include(u => u.GuestInvite).Include(u => u.PersistentGuest.Godfathers)
+                    .SingleAsync(u => u.Name == targetName);
+
+                // if guest is not a persistent guest, why the heck did someone call this method
+                if (guest.PersistentGuest == null)
+                {
+                    await actor.SendMessage("How about no.");
+                    transact.Commit();
+                    return;
+                }
+
+                var membership = guest.PersistentGuest.Godfathers.Single(m => m.UserId == actor.UserId);
+                if (membership != null)
+                {
+                    guest.PersistentGuest.Godfathers.Remove(membership);
+
+                    // no godfather anymore --> downgrade to regular guest
+                    if (guest.PersistentGuest.Godfathers.Count == 0)
+                    {
+                        guest.GuestInvite = guest.PersistentGuest.OriginalInvite;
+                        context.PersistentGuests.Remove(guest.PersistentGuest);
+                        guest.PersistentGuest = null;
+
+                        await actor.SendMessage("Removed. Downgraded to a normal guest.");
+                    }
+                    else
+                        await actor.SendMessage("Removed. User is still a persistent guest though.");
+                }
+                else
+                    await actor.SendMessage("He was never yours anyways.");
+
+
+                await context.SaveChangesAsync();
+                transact.Commit();
+            }
+        }
+
+        [ContextCallback("Ein Angebot, das er nicht ablehnen kann.")]
+        public async Task BecomeGodfather(IUser actor, IUserShim targetShim)
+        {
+            var target = await targetShim.Load();
+            using (var context = await ContextProvider.Connect())
+            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                var godfather = await context.Users.Include(u => u.Membership).SingleAsync(u => u.Id == actor.UserId);
+
+                // if godfather is not a real member, this method call was super duper obsolete
+                if (godfather.Membership == null)
+                    return;
+
+                var guest = await context.Users.Include(u => u.Membership).Include(u => u.GuestInvite)
+                    .Include(u => u.PersistentGuest.Godfathers).SingleAsync(u => u.Id == target.UserId);
+
+                if (guest.PersistentGuest == null)
+                {
+                    // only guests can be promoted to persistentguests
+                    if (guest.GuestInvite == null)
+                        return;
+
+                    guest.PersistentGuest = new PersistentGuest
+                    {
+                        OriginalInvite = guest.GuestInvite,
+                    };
+                    guest.GuestInvite = null;
+                }
+
+                // ignore the nop case
+                if (guest.PersistentGuest.Godfathers.Contains(godfather.Membership))
+                    return;
+
+                guest.PersistentGuest.Godfathers.Add(godfather.Membership);
+
+                await context.SaveChangesAsync();
+                transact.Commit();
+            }
+
+            await target.SendMessage("Irgendwann - möglicherweise aber auch nie - werde ich dich bitten, mir eine kleine Gefälligkeit zu erweisen.");
         }
     }
 }
