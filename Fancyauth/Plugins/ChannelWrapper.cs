@@ -59,6 +59,11 @@ namespace Fancyauth.Plugins
             set { Channel.temporary = value; }
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public override bool Equals(object o)
         {
             IChannel t = this;

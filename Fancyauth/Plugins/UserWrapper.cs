@@ -111,6 +111,11 @@ namespace Fancyauth.Plugins
 
         float IUser.AverageTcpPing { get { return User.tcpPing; } }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public override bool Equals(Object o)
         {
             IUser t = this;
