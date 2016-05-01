@@ -15,13 +15,17 @@ using Org.BouncyCastle.X509;
 using Fancyauth.Model;
 using System.Data.Entity;
 using Fancyauth.Steam;
+using System.Collections.Concurrent;
 
 namespace Fancyauth
 {
     public class Fancyauth
     {
+        public ConcurrentDictionary<int, Model.UserAttribute.CertificateCredentials> GuestCredentials { get; private set; }
+
         public Fancyauth()
         {
+            GuestCredentials = new ConcurrentDictionary<int, Model.UserAttribute.CertificateCredentials>();
         }
 
         /*
@@ -62,10 +66,10 @@ namespace Fancyauth
 
                 var cmdmgr = new CommandManager();
                 var contextCallbackMgr = new ContextCallbackManager(steamListener, server, adapter, StashCallback);
-                var pluginMan = new PluginManager(StashCallback, steamListener, server, contextCallbackMgr, cmdmgr);
-                var asci = adapter.addWithUUID(new ServerCallback(steamListener, server, contextCallbackMgr, cmdmgr, StashCallback));
+                var pluginMan = new PluginManager(this, steamListener, server, contextCallbackMgr, cmdmgr);
+                var asci = adapter.addWithUUID(new ServerCallback(this, steamListener, server, contextCallbackMgr, cmdmgr));
                 var asci2 = adapter.addWithUUID(pluginMan);
-                var authenticator = adapter.addWithUUID(new Authenticator());
+                var authenticator = adapter.addWithUUID(new Authenticator(this));
                 adapter.activate();
 
                 await server.AddCallback(Murmur.ServerCallbackPrxHelper.uncheckedCast(asci));

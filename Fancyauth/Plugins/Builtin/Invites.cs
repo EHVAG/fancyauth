@@ -35,6 +35,9 @@ namespace Fancyauth.Plugins.Builtin
         [Import]
         public IFancyContextProvider ContextProvider { get; set; }
 
+        [Import]
+        public Fancyauth Fancyauth { get; set; }
+
         [Command]
         public async Task Invite(IUser usr)
         {
@@ -88,7 +91,9 @@ namespace Fancyauth.Plugins.Builtin
                     {
                         guest.GuestInvite = guest.PersistentGuest.OriginalInvite;
                         context.PersistentGuests.Remove(guest.PersistentGuest);
+                        context.CertificateCredentials.Remove(guest.CertCredentials);
                         guest.PersistentGuest = null;
+                        guest.CertCredentials = null;
 
                         await actor.SendMessage("Removed. Downgraded to a normal guest.");
                     }
@@ -131,6 +136,15 @@ namespace Fancyauth.Plugins.Builtin
                         OriginalInvite = guest.GuestInvite,
                     };
                     guest.GuestInvite = null;
+
+                    CertificateCredentials creds;
+                    if (Fancyauth.GuestCredentials.TryGetValue(target.UserId, out creds))
+                        guest.CertCredentials = creds;
+                    else
+                    {
+                        await actor.SendMessage("No certificate found.");
+                        return;
+                    }
                 }
 
                 // ignore the nop case

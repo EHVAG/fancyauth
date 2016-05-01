@@ -16,13 +16,15 @@ namespace Fancyauth
 {
     public class ServerCallback : Wrapped.ServerCallback
     {
+        private readonly Fancyauth Fancyauth;
         private readonly Steam.SteamListener SteamListener;
         private readonly Server Server;
         private readonly CommandManager CommandMgr;
 
-        public ServerCallback(Steam.SteamListener steamListener, Server server, ContextCallbackManager contextCallbackMgr, CommandManager cmdmgr, Action<Task> asyncCompleter)
-            : base(asyncCompleter)
+        public ServerCallback(Fancyauth fancyauth, Steam.SteamListener steamListener, Server server, ContextCallbackManager contextCallbackMgr, CommandManager cmdmgr)
+            : base(fancyauth.StashCallback)
         {
+            Fancyauth = fancyauth;
             SteamListener = steamListener;
             Server = server;
             CommandMgr = cmdmgr;
@@ -68,21 +70,21 @@ namespace Fancyauth
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                var userNotificationsQuery = from usr in context.Users
+                var userNotificationsQuery = from usr in context.Users.Include(x => x.PersistentGuest.Godfathers)
+                                                                      .Include(x => x.GuestInvite.Inviter).Include(x => x.Membership)
                                              where usr.Id == user.userid
                                              join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.Who.Id into connectedEvents
                                              let lastConnection = connectedEvents.Max(x => x.When)
                                              join notific in context.OfflineNotifications on usr.Id equals notific.Recipient.Id into notifications
-                                             select new { usr, usr.Membership, usr.GuestInvite.Inviter, usr.PersistentGuest.Godfathers,
-                                                 notifications = notifications.Where(x => x.When > lastConnection) };
+                                             select new { usr, notifications = notifications.Where(x => x.When > lastConnection) };
                 var res = await userNotificationsQuery.SingleAsync();
                 foreach (var notify in res.notifications)
                     await Server.SendMessage(user.session, notify.Message);
 
-                if (res.Membership == null)
+                if (res.usr.Membership == null)
                 {
                     var onlineUsers = await Server.GetUsers();
-                    var godfathers = res.Godfathers?.Select(x => x.UserId) ?? new[] { res.Inviter.Id };
+                    var godfathers = res.usr.PersistentGuest?.Godfathers?.Select(x => x.UserId) ?? new[] { res.usr.GuestInvite.Inviter.Id };
                     if (!godfathers.Intersect(onlineUsers.Select(x => x.Value.userid)).Any())
                     {
                         await Server.KickUser(user.session, "Inviter not online.");
@@ -104,6 +106,9 @@ namespace Fancyauth
 
         public override async Task UserDisconnected(Murmur.User user)
         {
+            Model.UserAttribute.CertificateCredentials cc;
+            Fancyauth.GuestCredentials.TryRemove(user.userid, out cc);
+
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
             {

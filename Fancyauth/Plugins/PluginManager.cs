@@ -27,15 +27,20 @@ namespace Fancyauth.Plugins
         [Export]
         public ICommandManager CommandManager { get; private set; }
 
+        // This is exported only for builtins - plugins must not link directly to Fancyauth.
+        [Export]
+        public Fancyauth Fancyauth { get; private set; }
+
         [ImportMany]
         public IEnumerable<IFancyPlugin> Plugins { get; private set; }
 
         private readonly Steam.SteamListener SteamListener;
         private readonly Wrapped.Server WServer;
 
-        public PluginManager(Action<Task> asyncCompleter, Steam.SteamListener steamListener, Wrapped.Server wserver, ContextCallbackManager ccmgr, CommandManager cmdmgr)
-            : base(asyncCompleter)
+        public PluginManager(Fancyauth fancyauth, Steam.SteamListener steamListener, Wrapped.Server wserver, ContextCallbackManager ccmgr, CommandManager cmdmgr)
+            : base(fancyauth.StashCallback)
         {
+            Fancyauth = fancyauth;
             SteamListener = steamListener;
             WServer = wserver;
             Server = new ServerWrapper(steamListener, wserver);

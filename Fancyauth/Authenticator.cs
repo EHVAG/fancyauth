@@ -16,6 +16,13 @@ namespace Fancyauth
 {
     public class Authenticator : Wrapped.Authenticator
     {
+        private readonly Fancyauth Fancyauth;
+
+        public Authenticator(Fancyauth fancyauth)
+        {
+            Fancyauth = fancyauth;
+        }
+
         public override async Task<Wrapped.AuthenticationResult> Authenticate(string name, string pw, byte[][] certificates, string certhash, bool certstrong)
         {
             string fingerprint = null;
@@ -43,7 +50,17 @@ namespace Fancyauth
                 // (no certs at all)
             }
 
+            CertificateCredentials creds = null;
+            if (certSerial.HasValue)
+                creds = new CertificateCredentials
+                {
+                    Fingerprint = fingerprint,
+                    CertSerial = certSerial.Value,
+                };
+
+
             User user;
+            bool isGuest = false;
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
                 user = await context.Users.Include(x => x.Membership).Include(x => x.PersistentGuest)
@@ -72,14 +89,39 @@ namespace Fancyauth
                     var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
                     if (invite != null)
                     {
-                        // Temporary guest.
-                        // In the reworked guest mechanics, we really create a new User for every single temporary guest login.
-                        // Not perfect but there doesn't seem to be a better way.
-                        user = context.Users.Add(new User
+                        // Try to match by name.
+                        user = await context.Users.SingleOrDefaultAsync(x => x.Name == name);
+
+                        if (user != null)
                         {
-                            Name = name,
-                            GuestInvite = invite,
-                        });
+                            if (user.GuestInvite == null)
+                            {
+                                // In case the name is already taken by a non-guest, we force them to a
+                                // random but different name so everyone can see they're a guest.
+                                name += "-guest-" + Guid.NewGuid().ToString();
+                                user = null;
+                            }
+                            else
+                            {
+                                // The account once belonged to a guest? Nice.
+                                // But adjust to the new guest invite.
+                                user.GuestInvite = invite;
+                                // (Note that we don't care about the edge case where guests get ghost-kicked
+                                //  by other guests because we simply don't care about guests.)
+                            }
+                        }
+
+                        if (user == null)
+                        {
+                            // Create a new user for this name if we need to.
+                            user = context.Users.Add(new User
+                            {
+                                Name = name,
+                                GuestInvite = invite,
+                            });
+                        }
+
+                        isGuest = true;
                     }
                     else
                     {
@@ -116,11 +158,7 @@ namespace Fancyauth
                             user = context.Users.Add(new User
                             {
                                 Name = subCN,
-                                CertCredentials = new CertificateCredentials
-                                {
-                                    Fingerprint = fingerprint,
-                                    CertSerial = certSerial.Value,
-                                },
+                                CertCredentials = creds,
                                 Membership = new Membership()
                             });
                         }
@@ -128,8 +166,12 @@ namespace Fancyauth
                 }
 
                 await context.SaveChangesAsync();
+
                 transact.Commit();
             }
+
+            if (isGuest && (creds != null))
+                Fancyauth.GuestCredentials.AddOrUpdate(user.Id, creds, (k, c) => creds);
 
             return Wrapped.AuthenticationResult.Success(user.Id, user.Name);
         }
