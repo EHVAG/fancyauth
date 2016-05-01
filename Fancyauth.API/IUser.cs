@@ -33,6 +33,12 @@ namespace Fancyauth.API
         TimeSpan IdleTime { get; }
         float AverageUdpPing { get; }
         float AverageTcpPing { get; }
+
+        /// <summary>
+        /// Gets this user's steam adapter or <c>null</c> if the user hasn't enabled steam integration.
+        /// </summary>
+        /// <returns>The steam adapter.</returns>
+        Task<IUserSteamAdapter> GetSteamAdapter();
     }
 }
 

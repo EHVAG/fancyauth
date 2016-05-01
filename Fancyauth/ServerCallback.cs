@@ -16,12 +16,16 @@ namespace Fancyauth
 {
     public class ServerCallback : Wrapped.ServerCallback
     {
+        private readonly Fancyauth Fancyauth;
+        private readonly Steam.SteamListener SteamListener;
         private readonly Server Server;
         private readonly CommandManager CommandMgr;
 
-        public ServerCallback(Server server, ContextCallbackManager contextCallbackMgr, CommandManager cmdmgr, Action<Task> asyncCompleter)
-            : base(asyncCompleter)
+        public ServerCallback(Fancyauth fancyauth, Steam.SteamListener steamListener, Server server, ContextCallbackManager contextCallbackMgr, CommandManager cmdmgr)
+            : base(fancyauth.StashCallback)
         {
+            Fancyauth = fancyauth;
+            SteamListener = steamListener;
             Server = server;
             CommandMgr = cmdmgr;
         }
@@ -42,16 +46,16 @@ namespace Fancyauth
                 if (message.channels.Any())
                 {
                     if (msg[0] == "@fancy-ng")
-                        await CommandMgr.HandleCommand(Server, user, msg.Skip(1));
+                        await CommandMgr.HandleCommand(SteamListener, Server, user, msg.Skip(1));
 
                     if (senderEntity != null)
-                        context.Logs.Add(new LogEntry.ChatMessage { When = DateTimeOffset.Now, WhoU = senderEntity, Message = message.text });
+                        context.Logs.Add(new LogEntry.ChatMessage { When = DateTimeOffset.Now, Who = senderEntity, Message = message.text });
                 }
 
                 if (senderEntity != null)
                 {
                     var messagesInTheLastSeconds = await context.Logs.OfType<LogEntry.ChatMessage>()
-                        .Where(x => x.WhoUId == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTimeOffset.Now, -5)).CountAsync();
+                        .Where(x => x.Who.Id == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTimeOffset.Now, -5)).CountAsync();
                     if (messagesInTheLastSeconds >= 3)
                         await Server.KickUser(user.session, "Who are you, my evil twin?! [stop spamming]");
                 }
@@ -66,35 +70,35 @@ namespace Fancyauth
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                var logEntry = context.Logs.Add(new LogEntry.Connected { When = DateTimeOffset.Now });
+                var userNotificationsQuery = from usr in context.Users.Include(x => x.PersistentGuest.Godfathers)
+                                                                      .Include(x => x.GuestInvite.Inviter).Include(x => x.Membership)
+                                             where usr.Id == user.userid
+                                             join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.Who.Id into connectedEvents
+                                             let lastConnection = connectedEvents.Max(x => x.When)
+                                             join notific in context.OfflineNotifications on usr.Id equals notific.Recipient.Id into notifications
+                                             select new { usr, notifications = notifications.Where(x => x.When > lastConnection) };
+                var res = await userNotificationsQuery.SingleAsync();
+                foreach (var notify in res.notifications)
+                    await Server.SendMessage(user.session, notify.Message);
 
-                if (user.userid > 0)
+                if (res.usr.Membership == null)
                 {
-                    var userNotificationsQuery = from usr in context.Users
-                                                 where usr.Id == user.userid
-                                                 join evt in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals evt.WhoU.Id into connectedEvents
-                                                 let lastConnection = connectedEvents.Max(x => x.When)
-                                                 join notific in context.OfflineNotifications on usr.Id equals notific.Recipient.Id into notifications
-                                                 select new { usr, notifications = notifications.Where(x => x.When > lastConnection) };
-                    var res = await userNotificationsQuery.SingleAsync();
-                    foreach (var notify in res.notifications)
-                        await Server.SendMessage(user.session, notify.Message);
-
-                    logEntry.WhoU = res.usr;
-                }
-                else
-                {
-                    // guest handoff
-                    var assoc = await context.GuestAssociations.FindAsync(user.name);
-                    assoc.Session = user.session;
-
-                    logEntry.WhoI = assoc.Invite;
-
-                    await Server.AddUserToGroup(0, user.session, "Gast"); // add guests to the guest group
-                    // TODO: move guests to the guest channel
+                    var onlineUsers = await Server.GetUsers();
+                    var godfathers = res.usr.PersistentGuest?.Godfathers?.Select(x => x.UserId) ?? new[] { res.usr.GuestInvite.Inviter.Id };
+                    if (!godfathers.Intersect(onlineUsers.Select(x => x.Value.userid)).Any())
+                    {
+                        await Server.KickUser(user.session, "Inviter not online.");
+                        return;
+                    }
                 }
 
-                context.Logs.Add(logEntry);
+                // TODO: move guests to the guest channel
+
+                context.Logs.Add(new LogEntry.Connected
+                {
+                    When = DateTimeOffset.Now,
+                    Who = res.usr,
+                });
                 await context.SaveChangesAsync();
                 transact.Commit();
             }
@@ -102,19 +106,17 @@ namespace Fancyauth
 
         public override async Task UserDisconnected(Murmur.User user)
         {
+            Model.UserAttribute.CertificateCredentials cc;
+            Fancyauth.GuestCredentials.TryRemove(user.userid, out cc);
+
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
             {
-                var log = context.Logs.Add(new LogEntry.Disconnected { When = DateTimeOffset.Now });
-                if (user.userid > 0)
-                    log.WhoU = context.Users.Attach(new User { Id = user.userid });
-                else
+                context.Logs.Add(new LogEntry.Disconnected
                 {
-                    // remove guest assoc
-                    var assoc = await context.GuestAssociations.FindAsync(user.name);
-                    context.GuestAssociations.Remove(assoc);
-                    log.WhoI = assoc.Invite;
-                }
+                    When = DateTimeOffset.Now,
+                    Who = context.Users.Attach(new User { Id = user.userid }),
+                });
 
                 await context.SaveChangesAsync();
                 transact.Commit();

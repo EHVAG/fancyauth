@@ -29,17 +29,21 @@
     <DefineConstants>TRACE;</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
-      <Private>True</Private>
     </Reference>
-    <Reference Include="Npgsql.EntityFramework, Version=2.2.5.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
+    <Reference Include="Npgsql.EntityFramework">
       <HintPath>..\packages\Npgsql.EntityFramework.2.2.5\lib\net45\Npgsql.EntityFramework.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="protobuf-net">
+      <HintPath>..\packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
+    <Reference Include="SteamKit2">
+      <HintPath>..\packages\SteamKit2.1.6.2\lib\net40\SteamKit2.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Security">
       <HintPath>..\packages\Npgsql.2.2.5\lib\net45\Mono.Security.dll</HintPath>
     </Reference>
@@ -51,9 +55,6 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Linq" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="Ice">
@@ -109,6 +110,10 @@
     <Compile Include="Migrations\201506081930540_SongSuggestionsCanBeDecided.Designer.cs">
       <DependentUpon>201506081930540_SongSuggestionsCanBeDecided.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201510021559456_GuestModelRework.cs" />
+    <Compile Include="Migrations\201510021559456_GuestModelRework.Designer.cs">
+      <DependentUpon>201510021559456_GuestModelRework.cs</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\Builtin\LockedChannels.cs" />
     <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />
@@ -141,18 +146,21 @@
     <Compile Include="Plugins\Builtin\HelpCommand.cs" />
     <Compile Include="Plugins\Builtin\Invites.cs" />
     <Compile Include="Plugins\Builtin\FancyText.cs" />
+    <Compile Include="Plugins\Builtin\SteamIntegration.cs" />
+    <Compile Include="Plugins\UserSteamAdapter.cs" />
+    <Compile Include="Steam\ISteamEventForwarder.cs" />
+    <Compile Include="Steam\SteamListener.cs" />
+    <Compile Include="Steam\SteamEventForwarder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fancyauth.API.DB\Fancyauth.API.DB.csproj">
-      <Project>{8cc8506f-80a7-410c-bfc4-f9488babad9a}</Project>
+      <Project>{8CC8506F-80A7-410C-BFC4-F9488BABAD9A}</Project>
       <Name>Fancyauth.API.DB</Name>
     </ProjectReference>
     <ProjectReference Include="..\Fancyauth.API\Fancyauth.API.csproj">
@@ -164,7 +172,7 @@
       <Name>Fancyauth.APIUtil</Name>
     </ProjectReference>
     <ProjectReference Include="..\Fancyauth.Model\Fancyauth.Model.csproj">
-      <Project>{a935cbc9-42bb-4fd6-a8dc-1f8c52c0b89e}</Project>
+      <Project>{A935CBC9-42BB-4FD6-A8DC-1F8C52C0B89E}</Project>
       <Name>Fancyauth.Model</Name>
     </ProjectReference>
   </ItemGroup>
@@ -204,6 +212,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201506081930540_SongSuggestionsCanBeDecided.resx">
       <DependentUpon>201506081930540_SongSuggestionsCanBeDecided.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201510021559456_GuestModelRework.resx">
+      <DependentUpon>201510021559456_GuestModelRework.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
