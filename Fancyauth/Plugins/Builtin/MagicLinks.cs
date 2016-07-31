@@ -11,7 +11,7 @@ namespace Fancyauth.Plugins.Builtin
     public class MagicLinks : PluginBase
     {
         private static readonly Regex LinkPattern = new Regex(@"^<a href=""([^""]*)"">([^<]*)<\/a>$", RegexOptions.Compiled);
-        private static readonly Regex ImgurPattern = new Regex(@"^https?:\/\/(i\.)?imgur\.com\/([^.]*)(\.(png|jpg))?$", RegexOptions.Compiled);
+        private static readonly Regex ImgurPattern = new Regex(@"^https?:\/\/(i\.)?imgur\.com\/([^./]*)(\.(png|jpg))?$", RegexOptions.Compiled);
         private static readonly Regex ImgurAlbumPattern = new Regex(@"^https?:\/\/imgur\.com\/a/([^.]*)$", RegexOptions.Compiled);
         private static readonly Regex ImgurExtractAlbumPattern = new Regex(@"<img src=""\/\/i.imgur\.com\/(.*)?""", RegexOptions.Compiled);
         private static readonly Regex GagPattern = new Regex(@"^https?:\/\/9gag\.com\/gag\/([^.]*)$", RegexOptions.Compiled);
