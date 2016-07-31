@@ -33,8 +33,7 @@ namespace Fancyauth.Plugins.Builtin
                     using (var client = new HttpClient())
                     {
                         var page = await client.GetStringAsync(link);
-                        img = ImgurExtractAlbumPattern.Match(page).Groups[1].Captures[0].Value;
-                        img = String.Format("http://i.imgur.com/{0}", img);
+                        img = "http://i.imgur.com/" + ImgurExtractAlbumPattern.Match(page).Groups[1].Captures[0].Value;
                     }
                 }
 
