@@ -31,7 +31,11 @@ namespace Fancyauth.Plugins.Builtin
                 else if (imgurAlbumMatch.Success)
                 {
                     using (var client = new HttpClient())
-                        img = ImgurExtractAlbumPattern.Match(await client.GetStringAsync(link)).Groups[1].Captures[0].Value;
+                    {
+                        var page = await client.GetStringAsync(link);
+                        img = ImgurExtractAlbumPattern.Match(page).Groups[1].Captures[0].Value;
+                        img = String.Format("http://i.imgur.com/{0}", img);
+                    }
                 }
 
                 else if (gagMatch.Success)
