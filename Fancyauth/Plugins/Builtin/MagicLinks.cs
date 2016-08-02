@@ -13,7 +13,7 @@ namespace Fancyauth.Plugins.Builtin
         private static readonly Regex LinkPattern = new Regex(@"^<a href=""([^""]*)"">([^<]*)<\/a>$", RegexOptions.Compiled);
         private static readonly Regex ImgurPattern = new Regex(@"^https?:\/\/(i\.)?imgur\.com\/([^./]*)(\.(png|jpg))?$", RegexOptions.Compiled);
         private static readonly Regex ImgurAlbumPattern = new Regex(@"^https?:\/\/imgur\.com\/a/(.*)$", RegexOptions.Compiled);
-        private static readonly Regex ImgurExtractAlbumPattern = new Regex(@"<img src=""\/\/i.imgur\.com\/(.*?)""", RegexOptions.Compiled);
+        private static readonly Regex ImgurExtractAlbumPattern = new Regex(@"<img .*src=""\/\/i.imgur\.com\/(.*?)""", RegexOptions.Compiled);
         private static readonly Regex GagPattern = new Regex(@"^https?:\/\/9gag\.com\/gag\/([^.]*)$", RegexOptions.Compiled);
         private const string ResizeImg = @"<a href=""{0}""><img src=""https://i.embed.ly/1/display/resize?key=412444a1782b460cada0ba48eb988d12&url={1}&width=200&grow=false"" alt=""9gag post"" /></a>";
 
