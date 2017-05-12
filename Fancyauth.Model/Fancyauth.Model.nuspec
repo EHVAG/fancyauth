@@ -14,6 +14,6 @@
     <tags>fancyauth murmur mumble</tags>
   </metadata>
   <files>
-    <file src="bin/Release/Fancyauth.Model.dll" target="lib\net45" />
+    <file src="bin/Release/Fancyauth.Model.dll" target="lib/net45" />
   </files>
 </package>
