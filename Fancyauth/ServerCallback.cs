@@ -49,7 +49,15 @@ namespace Fancyauth
                         await CommandMgr.HandleCommand(SteamListener, Server, user, msg.Skip(1));
 
                     if (senderEntity != null)
-                        context.Logs.Add(new LogEntry.ChatMessage { When = DateTimeOffset.Now, Who = senderEntity, Message = message.text });
+                    {
+                        context.Logs.Add(new LogEntry.ChatMessage
+                        {
+                            When = DateTimeOffset.Now,
+                            Who = senderEntity,
+                            Where = await context.Channels.SingleAsync(x => x.ServerId == user.channel),
+                            Message = message.text
+                        });
+                    }
                 }
 
                 if (senderEntity != null)
@@ -98,6 +106,7 @@ namespace Fancyauth
                 {
                     When = DateTimeOffset.Now,
                     Who = res.usr,
+                    Where = await context.Channels.SingleAsync(x => x.ServerId == user.channel),
                 });
                 await context.SaveChangesAsync();
                 transact.Commit();
@@ -116,9 +125,34 @@ namespace Fancyauth
                 {
                     When = DateTimeOffset.Now,
                     Who = context.Users.Attach(new User { Id = user.userid }),
+                    Where = await context.Channels.SingleAsync(x => x.ServerId == user.channel),
                 });
 
                 await context.SaveChangesAsync();
+                transact.Commit();
+            }
+        }
+
+        public override async Task UserStateChanged(Murmur.User user)
+        {
+            using (var context = await FancyContext.Connect())
+            using (var transact = context.Database.BeginTransaction())
+            {
+                var current = await context.Logs.Where(x => x.Who.Id == user.userid)
+                    .OrderByDescending(x => x.When).Select(x => x.Where.Id).FirstAsync();
+
+                if (current != user.channel)
+                {
+                    context.Logs.Add(new LogEntry.ChannelSwitched
+                    {
+                        When = DateTimeOffset.Now,
+                        Who = context.Users.Attach(new User { Id = user.userid }),
+                        Where = await context.Channels.SingleAsync(x => x.ServerId == user.channel),
+                    });
+
+                    await context.SaveChangesAsync();
+                }
+
                 transact.Commit();
             }
         }

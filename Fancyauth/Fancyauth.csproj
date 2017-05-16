@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -116,6 +116,10 @@
     <Compile Include="Migrations\201510021559456_GuestModelRework.Designer.cs">
       <DependentUpon>201510021559456_GuestModelRework.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201705162015441_TrackUserChannel.cs" />
+    <Compile Include="Migrations\201705162015441_TrackUserChannel.Designer.cs">
+      <DependentUpon>201705162015441_TrackUserChannel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\Builtin\LockedChannels.cs" />
     <Compile Include="Plugins\PermissionsWrapper.cs" />
     <Compile Include="Program.cs" />
@@ -217,6 +221,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201510021559456_GuestModelRework.resx">
       <DependentUpon>201510021559456_GuestModelRework.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201705162015441_TrackUserChannel.resx">
+      <DependentUpon>201705162015441_TrackUserChannel.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
