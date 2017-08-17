@@ -143,7 +143,6 @@
     <Compile Include="Plugins\ServerWrapper.cs" />
     <Compile Include="Plugins\ChannelShim.cs" />
     <Compile Include="Plugins\UserShim.cs" />
-    <Compile Include="Plugins\Builtin\MagicLinks.cs" />
     <Compile Include="Plugins\Builtin\DidYouMean.cs" />
     <Compile Include="Plugins\Builtin\HelpCommand.cs" />
     <Compile Include="Plugins\Builtin\Invites.cs" />
