@@ -21,6 +21,7 @@ namespace Fancyauth.Model
 
             modelBuilder.Entity<LogEntry>()
                 .Map<LogEntry.Connected>(x => x.Requires("Discriminator").HasValue((int)LogEntry.Discriminator.Connected))
+                .Map<LogEntry.ChannelSwitched>(x => x.Requires("Discriminator").HasValue((int)LogEntry.Discriminator.ChannelSwitched))
                 .Map<LogEntry.Disconnected>(x => x.Requires("Discriminator").HasValue((int)LogEntry.Discriminator.Disconnected))
                 .Map<LogEntry.ChatMessage>(x => x.Requires("Discriminator").HasValue((int)LogEntry.Discriminator.ChatMessage));
 

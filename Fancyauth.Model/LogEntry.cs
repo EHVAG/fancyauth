@@ -15,14 +15,22 @@ namespace Fancyauth.Model
         [Required]
         public virtual User Who { get; set; }
 
+        [Required]
+        public virtual Channel Where { get; set; }
+
         public enum Discriminator : int
         {
             Connected,
             Disconnected,
             ChatMessage,
+            ChannelSwitched,
         }
 
         public class Connected : LogEntry
+        {
+        }
+
+        public class ChannelSwitched : LogEntry
         {
         }
 
