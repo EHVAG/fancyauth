@@ -33,7 +33,8 @@ namespace Fancyauth.Model
         public class ChatMessage : LogEntry
         {
             public string Message { get; set; }
+
+            public virtual Channel Channel { get; set; }
         }
     }
 }
-
