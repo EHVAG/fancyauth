@@ -93,7 +93,8 @@ namespace Fancyauth
                 {
                     var onlineUsers = await Server.GetUsers();
                     var godfathers = res.usr.PersistentGuest?.Godfathers?.Select(x => x.UserId) ?? new[] { res.usr.GuestInvite.Inviter.Id };
-                    if (!godfathers.Intersect(onlineUsers.Select(x => x.Value.userid)).Any())
+                    // if the godfather is not online and the PersistentGuest did not provide a valid Invite
+                    if (!godfathers.Intersect(onlineUsers.Select(x => x.Value.userid)).Any() && DateTime.Now > (res.usr.GuestInvite?.ExpirationDate ?? new DateTime(0)))
                     {
                         await Server.KickUser(user.session, "Inviter not online.");
                         return;

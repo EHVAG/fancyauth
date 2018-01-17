@@ -65,6 +65,9 @@ namespace Fancyauth
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
                 user = await context.Users.Include(x => x.Membership).Include(x => x.PersistentGuest)
                     .Include(x => x.PersistentGuest.Godfathers).SingleOrDefaultAsync(x => x.CertCredentials.Fingerprint == fingerprint);
+                // Check if the invite is existent
+                pw = pw.Trim();
+                var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
 
                 if (user != null)
                 {
@@ -74,7 +77,11 @@ namespace Fancyauth
                     //
                     // As this is the /authenticator/, we can't query online users because that would deadlock murmur's main thread.
                     // As someone with CertificateCredentials is definitely allowed to connect, we just let them pass here and
-                    // kick them in OnUserConnected if they're missing a godfather.
+                    // kick them in UserConnected if they're missing a godfather.
+
+                    // If the invitee is not online but an invite was provided, the Persistent Guest should be allowed to connect.
+                    // Therefore we set the GuestInvite, which we can then verify in UserConnected.
+                    user.GuestInvite = invite;
                 }
                 else
                 {
@@ -84,9 +91,6 @@ namespace Fancyauth
                     // * new user
                     // * random person on the internet
 
-                    // Let's first check for guest invites
-                    pw = pw.Trim();
-                    var invite = await context.Invites.SingleOrDefaultAsync(x => (x.Code == pw) && (x.ExpirationDate > DateTimeOffset.Now));
                     if (invite != null)
                     {
                         // Try to match by name.
