@@ -66,6 +66,7 @@
     <Compile Include="SteamChatForwardingAssociation.cs" />
     <Compile Include="UserAttribute\PersistentGuest.cs" />
     <Compile Include="User.cs" />
+    <Compile Include="Rude.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
