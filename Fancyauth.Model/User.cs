@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel;
 using Fancyauth.Model.UserAttribute;
+using System.Collections.Generic;
 
 namespace Fancyauth.Model
 {
@@ -19,9 +20,10 @@ namespace Fancyauth.Model
         /// </summary>
         public virtual Membership Membership { get; set; }
         /// <summary>
-        /// Certificate the user can log in with (MAY be signed by ehvag mumble root ca).
+        /// Certificates the user can log in with.
+        /// MAY be signed by ehvag mumble root ca, but that one is sunsetting so we
         /// </summary>
-        public virtual CertificateCredentials CertCredentials { get; set; }
+        public virtual ICollection<CertificateCredentials> CertCredentials { get; set; }
         public virtual PersistentGuest PersistentGuest { get; set; }
         /// <summary>
         /// Guest invite - only set for guests that joined with an invite code.

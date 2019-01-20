@@ -31,7 +31,7 @@ namespace Fancyauth.Model
             modelBuilder.Entity<PersistentGuest>()
                 .HasMany(x => x.Godfathers).WithMany(x => x.Godfatherships).Map(x => x.ToTable("PG_Godfathers"));
 
-            modelBuilder.Entity<User>().HasOptional(x => x.CertCredentials).WithRequired(x => x.User).WillCascadeOnDelete();
+            modelBuilder.Entity<User>().HasMany(x => x.CertCredentials).WithRequired(x => x.User).WillCascadeOnDelete();
             modelBuilder.Entity<User>().HasOptional(x => x.Membership).WithRequired(x => x.User).WillCascadeOnDelete();
             modelBuilder.Entity<User>().HasOptional(x => x.PersistentGuest).WithRequired(x => x.User).WillCascadeOnDelete();
             modelBuilder.Entity<User>().HasOptional(x => x.GuestInvite).WithMany().WillCascadeOnDelete();

@@ -91,9 +91,9 @@ namespace Fancyauth.Plugins.Builtin
                     {
                         guest.GuestInvite = guest.PersistentGuest.OriginalInvite;
                         context.PersistentGuests.Remove(guest.PersistentGuest);
-                        context.CertificateCredentials.Remove(guest.CertCredentials);
+                        context.CertificateCredentials.RemoveRange(guest.CertCredentials);
                         guest.PersistentGuest = null;
-                        guest.CertCredentials = null;
+                        guest.CertCredentials.Clear();
 
                         await actor.SendMessage("Removed. Downgraded to a normal guest.");
                     }
@@ -107,6 +107,44 @@ namespace Fancyauth.Plugins.Builtin
                 await context.SaveChangesAsync();
                 transact.Commit();
             }
+        }
+
+        [ContextCallback("Integrate subject")]
+        public async Task Integrate(IUser actor, IUserShim targetShim)
+        {
+            var target = await targetShim.Load();
+            using (var context = await ContextProvider.Connect())
+            using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                var targetEntity = await context.Users.Include (x => x.Membership).Include (x => x.PersistentGuest)
+                                          .Include (x => x.GuestInvite).SingleAsync(x => x.Id == target.UserId);
+                var actorEntity = await context.Users.Include(x => x.Membership).Include(x => x.PersistentGuest)
+                                               .Include(x => x.GuestInvite).Include(x => x.CertCredentials)
+                                               .SingleAsync(x => x.Id == actor.UserId);
+                // reqiurements:
+                // * a member
+                // * targets a non-member
+                // * specifically, a non-persistent guest
+                if ((targetEntity.Membership != null) || (targetEntity.PersistentGuest != null) || (actorEntity.Membership == null))
+                {
+                    await actor.SendMessage("Integration denied.");
+                    return;
+                }
+
+                CertificateCredentials creds;
+                if (Fancyauth.GuestCredentials.TryGetValue(target.UserId, out creds))
+                    actorEntity.CertCredentials.Add(creds);
+                else
+                {
+                    await actor.SendMessage("No certificate found.");
+                    return;
+                }
+
+                await context.SaveChangesAsync();
+                transact.Commit();
+            }
+
+            await targetShim.Kick("You have been integrated into " + actor.Name);
         }
 
         [ContextCallback("Ein Angebot, das er nicht ablehnen kann.")]
@@ -139,7 +177,7 @@ namespace Fancyauth.Plugins.Builtin
 
                     CertificateCredentials creds;
                     if (Fancyauth.GuestCredentials.TryGetValue(target.UserId, out creds))
-                        guest.CertCredentials = creds;
+                        guest.CertCredentials.Add(creds);
                     else
                     {
                         await actor.SendMessage("No certificate found.");

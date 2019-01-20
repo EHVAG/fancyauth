@@ -64,7 +64,7 @@ namespace Fancyauth
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
                 user = await context.Users.Include(x => x.Membership).Include(x => x.PersistentGuest)
-                    .Include(x => x.PersistentGuest.Godfathers).SingleOrDefaultAsync(x => x.CertCredentials.Fingerprint == fingerprint);
+                                    .Include(x => x.PersistentGuest.Godfathers).SingleOrDefaultAsync(x => x.CertCredentials.Any(y => y.Fingerprint == fingerprint));
 
                 if (user != null)
                 {
@@ -130,6 +130,8 @@ namespace Fancyauth
                             return Wrapped.AuthenticationResult.Forbidden();
 
                         // New cert for existing user?
+                        /*
+                         * not longer supported
                         foreach (System.Collections.ICollection sans in bouncyCert.GetSubjectAlternativeNames())
                         {
                             var enm = sans.GetEnumerator();
@@ -151,6 +153,7 @@ namespace Fancyauth
                                 }
                             }
                         }
+                        */
 
                         if (user == null)
                         {
@@ -158,7 +161,7 @@ namespace Fancyauth
                             user = context.Users.Add(new User
                             {
                                 Name = subCN,
-                                CertCredentials = creds,
+                                CertCredentials = new List<CertificateCredentials> { creds },
                                 Membership = new Membership()
                             });
                         }
