@@ -98,9 +98,16 @@ namespace Fancyauth
                         await Server.KickUser(user.session, "Inviter not online.");
                         return;
                     }
-                }
 
-                // TODO: move guests to the guest channel
+                    if (res.usr.GuestInvite != null)
+                    {
+                        // move guest to inviter
+                        var inviter = onlineUsers.Single(x => x.Value.userid == res.usr.GuestInvite.InviterId);
+                        user.channel = inviter.Value.channel;
+                        user.suppress = false;
+                        await Server.SetState(user);
+                    }
+                }
 
                 context.Logs.Add(new LogEntry.Connected
                 {
