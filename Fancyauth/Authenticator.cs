@@ -173,8 +173,13 @@ namespace Fancyauth
             if (isGuest && (creds != null))
                 Fancyauth.GuestCredentials.AddOrUpdate(user.Id, creds, (k, c) => creds);
 
-            return Wrapped.AuthenticationResult.Success(user.Id, user.Name);
+            string[] groups = null;
+            if (user.PersistentGuest != null)
+                groups = PersistentGuestGroups;
+
+            return Wrapped.AuthenticationResult.Success(user.Id, user.Name, groups);
         }
+        private static readonly string[] PersistentGuestGroups = { "guys" };
 
         public override async Task<string> IdToName(int id)
         {

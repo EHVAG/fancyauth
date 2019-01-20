@@ -30,7 +30,7 @@ namespace Fancyauth.Wrapped
                     System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
                 }
 
-                cb__.ice_response(res.UserId, res.Username, null);
+                cb__.ice_response(res.UserId, res.Username, res.Groups);
             });
         }
 

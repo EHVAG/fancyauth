@@ -6,19 +6,20 @@ namespace Fancyauth.Wrapped
     {
         public int UserId { get; private set; }
         public string Username { get; private set; }
+        public string[] Groups { get; private set; }
 
         private AuthenticationResult()
         {
         }
 
-        public static AuthenticationResult Success(int uid, string username)
+        public static AuthenticationResult Success(int uid, string username, string[] groups)
         {
             if (uid <= 0)
                 throw new ArgumentOutOfRangeException("uid");
             if (String.IsNullOrWhiteSpace(username))
                 throw new ArgumentException("username");
 
-            return new AuthenticationResult { UserId = uid, Username = username };
+            return new AuthenticationResult { UserId = uid, Username = username, Groups = groups };
         }
 
         public static AuthenticationResult Forbidden()
