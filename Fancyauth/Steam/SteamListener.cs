@@ -55,15 +55,15 @@ namespace Fancyauth.Steam
         {
             var tcs = new TaskCompletionSource<object>();
             var steamThread = new Thread(() => {
-                new Callback<SteamClient.ConnectedCallback>(OnConnected, CallbackManager);
-                new Callback<SteamClient.DisconnectedCallback>(OnDisconnected, CallbackManager);
-                new Callback<SteamUser.LoggedOnCallback>(OnLoggedOn, CallbackManager);
-                new Callback<SteamUser.LoggedOffCallback>(OnLoggedOff, CallbackManager);
-                new Callback<SteamUser.UpdateMachineAuthCallback>(OnMachineAuth, CallbackManager);
-                new Callback<SteamUser.AccountInfoCallback>(OnAccountInfo, CallbackManager);
-                new Callback<SteamFriends.FriendsListCallback>(OnFriendsList, CallbackManager);
-                new Callback<SteamFriends.PersonaStateCallback>(OnPersonaState, CallbackManager);
-                new Callback<SteamFriends.FriendMsgCallback>(OnChatMessage, CallbackManager);
+                CallbackManager.Subscribe<SteamClient.ConnectedCallback>(OnConnected);
+                CallbackManager.Subscribe<SteamClient.DisconnectedCallback>(OnDisconnected);
+                CallbackManager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
+                CallbackManager.Subscribe<SteamUser.LoggedOffCallback>(OnLoggedOff);
+                CallbackManager.Subscribe<SteamUser.UpdateMachineAuthCallback>(OnMachineAuth);
+                CallbackManager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo);
+                CallbackManager.Subscribe<SteamFriends.FriendsListCallback>(OnFriendsList);
+                CallbackManager.Subscribe<SteamFriends.PersonaStateCallback>(OnPersonaState);
+                CallbackManager.Subscribe<SteamFriends.FriendMsgCallback>(OnChatMessage);
                 Trace.WriteLine("Connecting ...", "Steam");
                 SteamClient.Connect();
                 while (!cancellation.IsCancellationRequested)
