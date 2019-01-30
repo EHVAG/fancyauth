@@ -42,7 +42,7 @@ namespace Fancyauth.Plugins.Builtin
 
                     bool shouldForward;
                     using (var context = await FancyContext.Connect())
-                        shouldForward = null != await context.SteamChatForwardingAssociations.FindAsync(user.UserId, unchecked((int)gaim.Value));
+                        shouldForward = null != await context.SteamChatForwardingAssociations.FindAsync(user.UserId, unchecked((int)gaim));
                     if (shouldForward)
                         await steamAdapter.SendMessage(string.Format("[Chat] {0}: {1}", sender.Name, message));
                 }
