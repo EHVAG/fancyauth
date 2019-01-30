@@ -38,15 +38,13 @@ namespace Fancyauth.Plugins.Builtin
                 var steamAdapter = await user.GetSteamAdapter();
                 if (steamAdapter != null)
                 {
-                    var gaim = await steamAdapter.GetCurrentGame();
-                    if (gaim.HasValue)
-                    {
-                        bool shouldForward;
-                        using (var context = await FancyContext.Connect())
-                            shouldForward = null != await context.SteamChatForwardingAssociations.FindAsync(user.UserId, unchecked((int)gaim.Value));
-                        if (shouldForward)
-                            await steamAdapter.SendMessage(string.Format("[Chat] {0}: {1}", sender.Name, message));
-                    }
+                    var gaim = (await steamAdapter.GetCurrentGame()) ?? 0;
+
+                    bool shouldForward;
+                    using (var context = await FancyContext.Connect())
+                        shouldForward = null != await context.SteamChatForwardingAssociations.FindAsync(user.UserId, unchecked((int)gaim.Value));
+                    if (shouldForward)
+                        await steamAdapter.SendMessage(string.Format("[Chat] {0}: {1}", sender.Name, message));
                 }
             }
         }

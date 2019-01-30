@@ -19,7 +19,7 @@ namespace Fancyauth.Steam
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
             {
                 var steam64 = unchecked((long)sender.ConvertToUInt64());
-                var currentGame = unchecked((int)steamListener.GetCurrentGameId(sender).Value);
+                var currentGame = unchecked((int)(steamListener.GetCurrentGameId(sender) ?? 0));
                 var uid = await context.Users.Where(x => x.Membership.SteamId == steam64).Select(x => x.Id).SingleAsync();
                 if (message == "@fancy-ng forward")
                     context.SteamChatForwardingAssociations.Add(new Model.SteamChatForwardingAssociation

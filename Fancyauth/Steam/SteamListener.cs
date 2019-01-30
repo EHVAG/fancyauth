@@ -29,7 +29,7 @@ namespace Fancyauth.Steam
             EventForwarder = forwarder;
             AsyncCompleter = asyncCompleter;
 
-            SteamClient = new SteamClient(ProtocolType.Tcp);
+            SteamClient = new SteamClient();
             CallbackManager = new CallbackManager(SteamClient);
             SteamUser = SteamClient.GetHandler<SteamUser>();
             SteamFriends = SteamClient.GetHandler<SteamFriends>();
@@ -86,21 +86,16 @@ namespace Fancyauth.Steam
 
         private void OnConnected(SteamClient.ConnectedCallback callback)
         {
-            if (callback.Result != EResult.OK)
-                Trace.WriteLine(string.Format("Unable to connect to Steam: {0}", callback.Result), "Steam");
-            else
-            {
-                Trace.WriteLine("Connected to Steam! Logging in ...", "Steam");
-                byte[] sentryHash = null;
-                if (System.IO.File.Exists("sentry.bin"))
-                    sentryHash = CryptoHelper.SHAHash(System.IO.File.ReadAllBytes("sentry.bin"));
-                SteamUser.LogOn(new SteamUser.LogOnDetails {
-                    Username = User,
-                    Password = Pass,
-                    AuthCode = SteamGuardCode,
-                    SentryFileHash = sentryHash,
-                });
-            }
+            Trace.WriteLine("Connected to Steam! Logging in ...", "Steam");
+            byte[] sentryHash = null;
+            if (System.IO.File.Exists("sentry.bin"))
+                sentryHash = CryptoHelper.SHAHash(System.IO.File.ReadAllBytes("sentry.bin"));
+            SteamUser.LogOn(new SteamUser.LogOnDetails {
+                Username = User,
+                Password = Pass,
+                AuthCode = SteamGuardCode,
+                SentryFileHash = sentryHash,
+            });
         }
 
         private void OnDisconnected(SteamClient.DisconnectedCallback callback)
@@ -113,7 +108,7 @@ namespace Fancyauth.Steam
         private void OnLoggedOn(SteamUser.LoggedOnCallback callback)
         {
             bool isSteamGuard = callback.Result == EResult.AccountLogonDenied;
-            bool is2FA = callback.Result == EResult.AccountLogonDeniedNeedTwoFactorCode;
+            bool is2FA = callback.Result == EResult.AccountLoginDeniedNeedTwoFactor;
 
             if (isSteamGuard || is2FA)
             {

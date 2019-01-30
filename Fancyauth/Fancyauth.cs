@@ -169,7 +169,37 @@ namespace Fancyauth
 
         public void StashCallback(Task t)
         {
-            t.ContinueWith(callback => System.Diagnostics.Trace.WriteLineIf(callback.Exception != null, callback.Exception, "Async callback exception"), TaskContinuationOptions.None);
+            t.ContinueWith(callback => {
+                var exceptions = callback.Exception?.Flatten()?.InnerExceptions;
+                if (exceptions == null)
+                    return;
+
+                foreach (var exception in exceptions)
+                {
+                    System.Diagnostics.Trace.WriteLine(callback.Exception, "Async callback exception");
+                    var dbValidation = exception as System.Data.Entity.Validation.DbEntityValidationException;
+                    if (dbValidation != null)
+                    {
+                        foreach (var result in dbValidation.EntityValidationErrors)
+                        {
+                            foreach (var error in result.ValidationErrors)
+                            {
+                                System.Diagnostics.Trace.WriteLine(String.Format("{0} property {1} error: {2}", PrintDbPropertyValues(result.Entry.CurrentValues), error.PropertyName, error.ErrorMessage));
+                            }
+                        }
+                    }
+                }
+            }, TaskContinuationOptions.None);
+        }
+        public static string PrintDbPropertyValues(object o)
+        {
+            var dpv = o as System.Data.Entity.Infrastructure.DbPropertyValues;
+            if (dpv != null)
+                return "{ " + String.Join(", ", dpv.PropertyNames.Select(x => String.Format("{0} = {1}", x, PrintDbPropertyValues(dpv[x])))) + " }";
+            else if (o == null)
+                return "null";
+            else
+                return "\"" + o.ToString() + "\"";
         }
     }
 }
