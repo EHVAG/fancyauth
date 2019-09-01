@@ -100,8 +100,8 @@ namespace Fancyauth.Steam
 
         private void OnDisconnected(SteamClient.DisconnectedCallback callback)
         {
-            Trace.WriteLine("Disconnected from Steam, reconnecting in 5...", "Steam");
-            Thread.Sleep(TimeSpan.FromSeconds(5.0));
+            Trace.WriteLine("Disconnected from Steam, reconnecting in 5 minutes...", "Steam");
+            Thread.Sleep(TimeSpan.FromMinutes(5));
             SteamClient.Connect();
         }
 
