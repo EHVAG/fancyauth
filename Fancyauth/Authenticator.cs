@@ -90,7 +90,7 @@ namespace Fancyauth
                     if (invite != null)
                     {
                         // Try to match by name.
-                        user = await context.Users.SingleOrDefaultAsync(x => x.Name == name);
+                        user = await context.Users.Include(x => x.PersistentGuest).SingleOrDefaultAsync(x => x.Name == name);
 
                         if (user != null)
                         {
