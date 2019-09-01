@@ -55,14 +55,15 @@ namespace Fancyauth
                 var steamUser = Console.ReadLine();
                 Console.Write("Steam password: ");
                 var steamPassword = Console.ReadLine();
+
+                var server = new Server(rawServer);
+
                 var steamListener = new SteamListener(steamUser, steamPassword, () =>
                 {
                     Console.Write("Steam guard code: ");
                     return Console.ReadLine();
-                }, new SteamEventForwarder(), StashCallback);
+                }, new SteamEventForwarder { Server = server }, StashCallback);
                 var steamTask = steamListener.Run();
-
-                var server = new Server(rawServer);
 
                 var cmdmgr = new CommandManager();
                 var contextCallbackMgr = new ContextCallbackManager(steamListener, server, adapter, StashCallback);
