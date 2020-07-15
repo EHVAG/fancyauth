@@ -172,7 +172,6 @@ namespace Fancyauth
                 // However, we can use the logs in the database as a heuristic to get currently connected users.
                 if (user.PersistentGuest != null)
                 {
-                    var godfathers = user.PersistentGuest.Godfathers.Select(u => u.UserId).ToArray();
                     var godfathersQuery = from usr in context.Users
                         from godfathership in usr.Membership.Godfatherships
                         where godfathership.UserId == user.Id
