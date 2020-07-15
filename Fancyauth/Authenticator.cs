@@ -173,18 +173,13 @@ namespace Fancyauth
                 if (user.PersistentGuest != null)
                 {
                     var godfathers = user.PersistentGuest.Godfathers.Select(u => u.UserId).ToArray();
-                    var godfatherConnected = await context.Logs.OfType<LogEntry.Connected>()
-                        .Where(l => godfathers.Contains(l.Who.Id))
-                        .GroupBy(l => l.Who.Id)
-                        .Select(l => new {Godfather = l.Key, MaxCon = l.Select(con => con.When).Max()})
-                        .Join(context.Logs.OfType<LogEntry.Disconnected>()
-                                .Where(l => godfathers.Contains(l.Who.Id))
-                                .GroupBy(l => l.Who.Id)
-                                .Select(l => new {Godfather = l.Key, MaxDis = l.Select(dis => dis.When).Max()}),
-                            con => con.Godfather,
-                            dis => dis.Godfather,
-                            (con, dis) => new {Con = con.MaxCon, Dis = dis.MaxDis}
-                        ).AnyAsync(l => l.Con > l.Dis);
+                    var godfathersQuery = from usr in context.Users
+                        from godfathership in usr.Membership.Godfatherships
+                        where godfathership.UserId == user.Id
+                        join e in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals e.Who.Id into connectEvents
+                        join e in context.Logs.OfType<LogEntry.Disconnected>() on usr.Id equals e.Who.Id into disconnectEvents
+                        select new {Con = connectEvents.Max(x => x.When), Dis = disconnectEvents.Max(x => x.When)};
+                    var godfatherConnected = await godfathersQuery.AnyAsync(l => l.Con > l.Dis);
                     if (!godfatherConnected)
                     {
                         return Wrapped.AuthenticationResult.Forbidden();
