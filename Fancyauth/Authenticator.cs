@@ -177,7 +177,7 @@ namespace Fancyauth
                         where godfathership.UserId == user.Id
                         join e in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals e.Who.Id into connectEvents
                         join e in context.Logs.OfType<LogEntry.Disconnected>() on usr.Id equals e.Who.Id into disconnectEvents
-                        select new {Con = connectEvents.Max(x => x.When), Dis = disconnectEvents.Max(x => x.When)};
+                        select new { Con = connectEvents.Max(x => x.When), Dis = disconnectEvents.Max(x => x.When) };
                     var godfatherConnected = await godfathersQuery.AnyAsync(l => l.Con > l.Dis);
                     if (!godfatherConnected)
                     {
