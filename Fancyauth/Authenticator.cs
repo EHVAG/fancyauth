@@ -170,7 +170,7 @@ namespace Fancyauth
 
                 // As stated above, we can't query mumble for connected users to reject persistent guests.
                 // However, we can use the logs in the database as a heuristic to get currently connected users.
-                if (user.PersistentGuest != null && user.GuestInvite == null)
+                if (user.PersistentGuest != null && !isGuest)
                 {
                     var godfathersQuery = from usr in context.Users
                         from godfathership in usr.Membership.Godfatherships
