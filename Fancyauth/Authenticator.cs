@@ -168,6 +168,23 @@ namespace Fancyauth
                     }
                 }
 
+                // As stated above, we can't query mumble for connected users to reject persistent guests.
+                // However, we can use the logs in the database as a heuristic to get currently connected users.
+                if (user.PersistentGuest != null)
+                {
+                    var godfathersQuery = from usr in context.Users
+                        from godfathership in usr.Membership.Godfatherships
+                        where godfathership.UserId == user.Id
+                        join e in context.Logs.OfType<LogEntry.Connected>() on usr.Id equals e.Who.Id into connectEvents
+                        join e in context.Logs.OfType<LogEntry.Disconnected>() on usr.Id equals e.Who.Id into disconnectEvents
+                        select new { Con = connectEvents.Max(x => x.When), Dis = disconnectEvents.Max(x => x.When) };
+                    var godfatherConnected = await godfathersQuery.AnyAsync(l => l.Con > l.Dis);
+                    if (!godfatherConnected)
+                    {
+                        return Wrapped.AuthenticationResult.Forbidden();
+                    }
+                }
+
                 await context.SaveChangesAsync();
 
                 transact.Commit();
