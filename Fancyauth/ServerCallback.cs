@@ -48,6 +48,8 @@ namespace Fancyauth
                     if (msg[0] == "@fancy-ng")
                         await CommandMgr.HandleCommand(SteamListener, Server, user, msg.Skip(1));
 
+                    var channel = context.Channels.SingleAsync(a => a.ServerId == message.channels[0]);
+
                     if (senderEntity != null)
                     {
                         context.Logs.Add(new LogEntry.ChatMessage
@@ -241,4 +243,3 @@ namespace Fancyauth
         }
     }
 }
-
