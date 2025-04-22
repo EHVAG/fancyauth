@@ -40,6 +40,9 @@ namespace Fancyauth
             try {
                 var initdat = new Ice.InitializationData();
                 initdat.dispatcher = (act, conn) => Task.Run(act); // prevent weird deadlocks
+                var iceProps = Ice.Util.createProperties();
+                iceProps.setProperty("Ice.MessageSizeMax", "10240");
+                initdat.properties = iceProps;
                 communicator = Ice.Util.initialize(initdat);
 
                 #if DEBUG
