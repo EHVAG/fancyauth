@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Fancyauth.Wrapped
 {
-    public class ServerContextCallback : Murmur.ServerContextCallbackDisp_
+    public class ServerContextCallback : MumbleServer.ServerContextCallbackDisp_
     {
         private static readonly Task NullTask = Task.FromResult<object>(null);
 
@@ -14,12 +14,12 @@ namespace Fancyauth.Wrapped
             AsyncCompleter = asyncCompleter;
         }
 
-        public virtual Task ContextAction(string action, Murmur.User usr, int session, int channelid) { return NullTask; }
+        public virtual Task ContextAction(string action, MumbleServer.User usr, int session, int channelid) { return NullTask; }
 
-        public sealed override void contextAction_async(Murmur.AMD_ServerContextCallback_contextAction cb__, string action, Murmur.User usr, int session, int channelid, Ice.Current current__)
+        public sealed override Task contextActionAsync(string action, MumbleServer.User usr, int session, int channelid, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(ContextAction(action, usr, session, channelid));
+            Task.Run(() => AsyncCompleter(ContextAction(action, usr, session, channelid)));
+            return Task.CompletedTask;
         }
     }
 }

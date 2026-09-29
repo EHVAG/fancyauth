@@ -47,11 +47,11 @@ namespace Fancyauth
 
                 #if DEBUG
                 var adapter = communicator.createObjectAdapterWithEndpoints("Callback.Client", "tcp -h 127.0.1.1 -p 31338");
-                var rawServer = Murmur.ServerPrxHelper.checkedCast(communicator.stringToProxy("s/1 -t -e 1.1:tcp -h 127.0.0.1 -p 31337"));
+                var rawServer = MumbleServer.ServerPrxHelper.checkedCast(communicator.stringToProxy("s/1 -t -e 1.1:tcp -h 127.0.0.1 -p 31337"));
                 #else
                 var adapter = communicator.createObjectAdapterWithEndpoints("Callback.Client", "tcp -h 127.0.1.2 -p 31338");
-                var meta = Murmur.MetaPrxHelper.checkedCast(communicator.stringToProxy("Meta:tcp -h 127.0.1.1 -p 6502"));
-                var rawServer = await FixIce.FromAsync(1, meta.begin_getServer, meta.end_getServer);
+                var meta = MumbleServer.MetaPrxHelper.checkedCast(communicator.stringToProxy("Meta:tcp -h 127.0.1.1 -p 6502"));
+                var rawServer = await meta.getServerAsync(1);
                 #endif
 
                 Console.Write("Steam user: ");
@@ -76,9 +76,9 @@ namespace Fancyauth
                 var authenticator = adapter.addWithUUID(new Authenticator(this));
                 adapter.activate();
 
-                await server.AddCallback(Murmur.ServerCallbackPrxHelper.uncheckedCast(asci));
-                await server.AddCallback(Murmur.ServerCallbackPrxHelper.uncheckedCast(asci2));
-                await server.SetAuthenticator(Murmur.ServerAuthenticatorPrxHelper.uncheckedCast(authenticator));
+                await server.AddCallback(MumbleServer.ServerCallbackPrxHelper.uncheckedCast(asci));
+                await server.AddCallback(MumbleServer.ServerCallbackPrxHelper.uncheckedCast(asci2));
+                await server.SetAuthenticator(MumbleServer.ServerAuthenticatorPrxHelper.uncheckedCast(authenticator));
 
                 await UpdateChannelModel(server);
 
@@ -110,7 +110,7 @@ namespace Fancyauth
                 var allChans = await allChanQuery.ToArrayAsync();
 
                 var hitChans = new List<Channel>();
-                var treewalk = new Queue<Murmur.Tree>();
+                var treewalk = new Queue<MumbleServer.Tree>();
                 treewalk.Enqueue(tree);
                 while (treewalk.Any())
                 {

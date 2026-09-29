@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Fancyauth.Wrapped
 {
-    public class ServerCallback : Murmur.ServerCallbackDisp_
+    public class ServerCallback : MumbleServer.ServerCallbackDisp_
     {
         private static readonly Task NullTask = Task.FromResult<object>(null);
 
@@ -14,54 +14,54 @@ namespace Fancyauth.Wrapped
             AsyncCompleter = asyncCompleter;
         }
 
-        public virtual Task UserConnected(Murmur.User user) { return NullTask; }
-        public virtual Task UserDisconnected(Murmur.User user) { return NullTask; }
-        public virtual Task UserStateChanged(Murmur.User user) { return NullTask; }
-        public virtual Task UserTextMessage(Murmur.User user, Murmur.TextMessage message) { return NullTask; }
-        public virtual Task ChannelCreated(Murmur.Channel chan) { return NullTask; }
-        public virtual Task ChannelRemoved(Murmur.Channel chan) { return NullTask; }
-        public virtual Task ChannelStateChanged(Murmur.Channel chan) { return NullTask; }
+        public virtual Task UserConnected(MumbleServer.User user) { return NullTask; }
+        public virtual Task UserDisconnected(MumbleServer.User user) { return NullTask; }
+        public virtual Task UserStateChanged(MumbleServer.User user) { return NullTask; }
+        public virtual Task UserTextMessage(MumbleServer.User user, MumbleServer.TextMessage message) { return NullTask; }
+        public virtual Task ChannelCreated(MumbleServer.Channel chan) { return NullTask; }
+        public virtual Task ChannelRemoved(MumbleServer.Channel chan) { return NullTask; }
+        public virtual Task ChannelStateChanged(MumbleServer.Channel chan) { return NullTask; }
 
-        public sealed override void userConnected_async(Murmur.AMD_ServerCallback_userConnected cb__, Murmur.User state, Ice.Current current__)
+        public sealed override Task userConnectedAsync(MumbleServer.User state, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(UserConnected(state));
+            Task.Run(() => AsyncCompleter(UserConnected(state)));
+            return Task.CompletedTask;
         }
 
-        public sealed override void userDisconnected_async(Murmur.AMD_ServerCallback_userDisconnected cb__, Murmur.User state, Ice.Current current__)
+        public sealed override Task userDisconnectedAsync(MumbleServer.User state, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(UserDisconnected(state));
+            Task.Run(() => AsyncCompleter(UserDisconnected(state)));
+            return Task.CompletedTask;
         }
 
-        public sealed override void userStateChanged_async(Murmur.AMD_ServerCallback_userStateChanged cb__, Murmur.User state, Ice.Current current__)
+        public sealed override Task userStateChangedAsync(MumbleServer.User state, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(UserStateChanged(state));
+            Task.Run(() => AsyncCompleter(UserStateChanged(state)));
+            return Task.CompletedTask;
         }
 
-        public sealed override void userTextMessage_async(Murmur.AMD_ServerCallback_userTextMessage cb__, Murmur.User state, Murmur.TextMessage message, Ice.Current current__)
+        public sealed override Task userTextMessageAsync(MumbleServer.User state, MumbleServer.TextMessage message, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(UserTextMessage(state, message));
+            Task.Run(() => AsyncCompleter(UserTextMessage(state, message)));
+            return Task.CompletedTask;
         }
 
-        public sealed override void channelCreated_async(Murmur.AMD_ServerCallback_channelCreated cb__, Murmur.Channel state, Ice.Current current__)
+        public sealed override Task channelCreatedAsync(MumbleServer.Channel state, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(ChannelCreated(state));
+            Task.Run(() => AsyncCompleter(ChannelCreated(state)));
+            return Task.CompletedTask;
         }
 
-        public sealed override void channelRemoved_async(Murmur.AMD_ServerCallback_channelRemoved cb__, Murmur.Channel state, Ice.Current current__)
+        public sealed override Task channelRemovedAsync(MumbleServer.Channel state, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(ChannelRemoved(state));
+            Task.Run(() => AsyncCompleter(ChannelRemoved(state)));
+            return Task.CompletedTask;
         }
 
-        public sealed override void channelStateChanged_async(Murmur.AMD_ServerCallback_channelStateChanged cb__, Murmur.Channel state, Ice.Current current__)
+        public sealed override Task channelStateChangedAsync(MumbleServer.Channel state, Ice.Current current__)
         {
-            cb__.ice_response();
-            AsyncCompleter(ChannelStateChanged(state));
+            Task.Run(() => AsyncCompleter(ChannelStateChanged(state)));
+            return Task.CompletedTask;
         }
     }
 }

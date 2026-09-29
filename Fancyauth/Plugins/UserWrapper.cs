@@ -10,9 +10,9 @@ namespace Fancyauth.Plugins
 {
     public class UserWrapper : UserShim, IUser
     {
-        private Murmur.User User;
+        private MumbleServer.User User;
 
-        public UserWrapper(Steam.SteamListener steamListener, Wrapped.Server server, Murmur.User user)
+        public UserWrapper(Steam.SteamListener steamListener, Wrapped.Server server, MumbleServer.User user)
             : base(steamListener, server, user.session)
         {
             User = user;

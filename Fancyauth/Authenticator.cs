@@ -238,25 +238,25 @@ namespace Fancyauth
             }
         }
 
-        public override async Task<Dictionary<Murmur.UserInfo, string>> GetInfo(int id)
+        public override async Task<Dictionary<MumbleServer.UserInfo, string>> GetInfo(int id)
         {
             using (var context = new FancyContext()) {
                 var user = await context.Users.Include(x => x.Membership).SingleAsync(x => x.Id == id);
-                return new Dictionary<Murmur.UserInfo, string> {
-                    { Murmur.UserInfo.UserName, user.Name },
-                    { Murmur.UserInfo.UserComment, user.Membership?.Comment },
+                return new Dictionary<MumbleServer.UserInfo, string> {
+                    { MumbleServer.UserInfo.UserName, user.Name },
+                    { MumbleServer.UserInfo.UserComment, user.Membership?.Comment },
                 };
             }
         }
 
-        public override async Task<Wrapped.AuthenticatorUpdateResult> SetInfo(int id, Dictionary<Murmur.UserInfo, string> info)
+        public override async Task<Wrapped.AuthenticatorUpdateResult> SetInfo(int id, Dictionary<MumbleServer.UserInfo, string> info)
         {
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable)) {
                 var user = await context.Users.Include(x => x.Membership).SingleAsync(x => x.Id == id);
                 foreach (var kv in info) {
                     switch (kv.Key) {
-                    case Murmur.UserInfo.UserComment:
+                    case MumbleServer.UserInfo.UserComment:
                         user.Membership.Comment = kv.Value;
                         break;
                     default:

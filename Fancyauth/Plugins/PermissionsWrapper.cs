@@ -61,7 +61,7 @@ namespace Fancyauth.Plugins
             Groups = aclGroups.Where(x => !x._Inherited).ToList<IChannelUserGroup>();
         }
 
-        private SysGroup TryLookupSystemGroup(Murmur.ACL x)
+        private SysGroup TryLookupSystemGroup(MumbleServer.ACL x)
         {
             // Keep this wrapper because I'm lazy and didn't implement ALL system groups
             SysGroup res;
@@ -82,7 +82,7 @@ namespace Fancyauth.Plugins
             return Server.SetACL(ChannelId, new Wrapped.Server.ACLData
             {
                 Inherit = Inherit,
-                ACLs = ACL.Select(x => new Murmur.ACL
+                ACLs = ACL.Select(x => new MumbleServer.ACL
                 {
                     allow = (int)x.Allow,
                     deny = (int)x.Deny,
@@ -92,7 +92,7 @@ namespace Fancyauth.Plugins
                     group = x.TargetGroup == null ? String.Empty :
                         (x.TargetGroup is ChanGroup ? ((ChanGroup)x.TargetGroup).Name : SysGroups.Single(y => y.Value == x.TargetGroup).Key),
                 }).ToArray(),
-                Groups = InheritedGroups.Concat(Groups).Cast<ChanGroup>().Select(x => new Murmur.Group
+                Groups = InheritedGroups.Concat(Groups).Cast<ChanGroup>().Select(x => new MumbleServer.Group
                 {
                     name = x.Name,
                     inherited = x._Inherited,

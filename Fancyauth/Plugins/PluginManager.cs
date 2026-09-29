@@ -58,43 +58,43 @@ namespace Fancyauth.Plugins
                 plugin.Init();
         }
 
-        public override Task UserConnected(Murmur.User user)
+        public override Task UserConnected(MumbleServer.User user)
         {
             var apiUser = new UserWrapper(SteamListener, WServer, user);
             return Task.WhenAll(Plugins.Select(x => x.OnUserConnected(apiUser)));
         }
 
-        public override Task UserStateChanged(Murmur.User user)
+        public override Task UserStateChanged(MumbleServer.User user)
         {
             var apiUser = new UserWrapper(SteamListener, WServer, user);
             return Task.WhenAll(Plugins.Select(x => x.OnUserModified(apiUser)));
         }
 
-        public override Task UserDisconnected(Murmur.User user)
+        public override Task UserDisconnected(MumbleServer.User user)
         {
             var apiUser = new UserWrapper(SteamListener, WServer, user);
             return Task.WhenAll(Plugins.Select(x => x.OnUserDisconnected(apiUser)));
         }
 
-        public override Task ChannelCreated(Murmur.Channel chan)
+        public override Task ChannelCreated(MumbleServer.Channel chan)
         {
             var apiChannel = new ChannelWrapper(WServer, chan);
             return Task.WhenAll(Plugins.Select(x => x.OnChannelCreated(apiChannel)));
         }
 
-        public override Task ChannelStateChanged(Murmur.Channel chan)
+        public override Task ChannelStateChanged(MumbleServer.Channel chan)
         {
             var apiChannel = new ChannelWrapper(WServer, chan);
             return Task.WhenAll(Plugins.Select(x => x.OnChannelModified(apiChannel)));
         }
 
-        public override Task ChannelRemoved(Murmur.Channel chan)
+        public override Task ChannelRemoved(MumbleServer.Channel chan)
         {
             var apiChannel = new ChannelWrapper(WServer, chan);
             return Task.WhenAll(Plugins.Select(x => x.OnChannelDeleted(apiChannel)));
         }
 
-        public override Task UserTextMessage(Murmur.User user, Murmur.TextMessage message)
+        public override Task UserTextMessage(MumbleServer.User user, MumbleServer.TextMessage message)
         {
             var apiUser = new UserWrapper(SteamListener, WServer, user);
             var destChans = message.channels.Select(x => new ChannelShim(WServer, x)).ToArray();

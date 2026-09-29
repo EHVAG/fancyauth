@@ -8,10 +8,10 @@ namespace Fancyauth.Plugins
 {
     public class ChannelWrapper : ChannelShim, IChannel
     {
-        private Murmur.Channel Channel;
+        private MumbleServer.Channel Channel;
         private readonly ISet<IChannelShim> LinkedChannels;
 
-        public ChannelWrapper(Wrapped.Server server, Murmur.Channel channel)
+        public ChannelWrapper(Wrapped.Server server, MumbleServer.Channel channel)
             : base(server, channel.id)
         {
             Channel = channel;

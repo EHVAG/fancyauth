@@ -17,7 +17,7 @@ namespace Fancyauth.Commands
             _Commands.Add(name, func);
         }
 
-        public Task HandleCommand(Steam.SteamListener steamListener, Wrapped.Server server, Murmur.User caller, IEnumerable<string> cmd)
+        public Task HandleCommand(Steam.SteamListener steamListener, Wrapped.Server server, MumbleServer.User caller, IEnumerable<string> cmd)
         {
             CommandFunc func;
             if (_Commands.TryGetValue(cmd.FirstOrDefault(), out func))

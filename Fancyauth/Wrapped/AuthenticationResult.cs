@@ -36,6 +36,11 @@ namespace Fancyauth.Wrapped
         {
             return new AuthenticationResult { UserId = -3, Username = null };
         }
+
+        public static explicit operator MumbleServer.ServerAuthenticator_AuthenticateResult(AuthenticationResult result)
+        {
+            return new MumbleServer.ServerAuthenticator_AuthenticateResult(result.UserId, result.Username, result.Groups);
+        }
     }
 }
 

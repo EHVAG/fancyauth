@@ -32,7 +32,7 @@ namespace Fancyauth
 
         private static readonly Regex CommandPattern = new Regex(@"[\""].+?[\""]|[^ ]+", RegexOptions.Compiled);
 
-        public override async Task UserTextMessage(Murmur.User user, Murmur.TextMessage message)
+        public override async Task UserTextMessage(MumbleServer.User user, MumbleServer.TextMessage message)
         {
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
@@ -73,7 +73,7 @@ namespace Fancyauth
             }
         }
 
-        public override async Task UserConnected(Murmur.User user)
+        public override async Task UserConnected(MumbleServer.User user)
         {
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction(IsolationLevel.Serializable))
@@ -102,6 +102,7 @@ namespace Fancyauth
                     if (res.usr.GuestInvite != null)
                     {
                         // move guest to inviter
+                        Console.WriteLine("Moving guest to inviter");
                         var inviter = onlineUsers.Single(x => x.Value.userid == res.usr.GuestInvite.InviterId);
                         user.channel = inviter.Value.channel;
                         user.suppress = false;
@@ -120,7 +121,7 @@ namespace Fancyauth
             }
         }
 
-        public override async Task UserDisconnected(Murmur.User user)
+        public override async Task UserDisconnected(MumbleServer.User user)
         {
             Model.UserAttribute.CertificateCredentials cc;
             Fancyauth.GuestCredentials.TryRemove(user.userid, out cc);
@@ -140,7 +141,7 @@ namespace Fancyauth
             }
         }
 
-        public override async Task UserStateChanged(Murmur.User user)
+        public override async Task UserStateChanged(MumbleServer.User user)
         {
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
@@ -164,7 +165,7 @@ namespace Fancyauth
             }
         }
 
-        public override async Task ChannelCreated(Murmur.Channel chan)
+        public override async Task ChannelCreated(MumbleServer.Channel chan)
         {
             using (var context = await FancyContext.Connect())
             using (var transact = context.Database.BeginTransaction())
@@ -188,7 +189,7 @@ namespace Fancyauth
             }
         }
 
-        public override async Task ChannelStateChanged(Murmur.Channel chan)
+        public override async Task ChannelStateChanged(MumbleServer.Channel chan)
         {
             using (var context = await FancyContext.Connect())
             {
@@ -221,7 +222,7 @@ namespace Fancyauth
             }
         }
 
-        public override async Task ChannelRemoved(Murmur.Channel chan)
+        public override async Task ChannelRemoved(MumbleServer.Channel chan)
         {
             using (var context = await FancyContext.Connect())
             {

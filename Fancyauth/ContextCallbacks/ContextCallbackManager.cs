@@ -11,7 +11,7 @@ namespace Fancyauth.ContextCallbacks
     {
         private readonly Steam.SteamListener SteamListener;
         private readonly Wrapped.Server Server;
-        private readonly Murmur.ServerContextCallbackPrx IcePrx;
+        private readonly MumbleServer.ServerContextCallbackPrx IcePrx;
         private readonly Dictionary<string, IServerContextCallback> ServerCallbacks = new Dictionary<string, IServerContextCallback>();
         private readonly Dictionary<string, IChannelContextCallback> ChannelCallbacks = new Dictionary<string, IChannelContextCallback>();
         private readonly Dictionary<string, IUserContextCallback> UserCallbacks = new Dictionary<string, IUserContextCallback>();
@@ -21,10 +21,10 @@ namespace Fancyauth.ContextCallbacks
         {
             SteamListener = steamListener;
             Server = server;
-            IcePrx = Murmur.ServerContextCallbackPrxHelper.uncheckedCast(adapter.addWithUUID(this));
+            IcePrx = MumbleServer.ServerContextCallbackPrxHelper.uncheckedCast(adapter.addWithUUID(this));
         }
 
-        public override Task ContextAction(string action, Murmur.User usr, int session, int channelid)
+        public override Task ContextAction(string action, MumbleServer.User usr, int session, int channelid)
         {
             var apiUser = new Plugins.UserWrapper(SteamListener, Server, usr);
 

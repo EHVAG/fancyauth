@@ -4,160 +4,121 @@ using System.Collections.Generic;
 
 namespace Fancyauth.Wrapped
 {
-    public class Authenticator : Murmur.ServerUpdatingAuthenticatorDisp_
+    public class Authenticator : MumbleServer.ServerUpdatingAuthenticatorDisp_
     {
         private static readonly Task<AuthenticationResult> NullAuthResult = Task.FromResult(AuthenticationResult.TryAgainLater());
         private static readonly Task<AuthenticationResult> NullRegisterResult = Task.FromResult(AuthenticationResult.Forbidden());
 
         public virtual Task<AuthenticationResult> Authenticate(string name, string pw, byte[][] certificates, string certhash, bool certstrong) { return NullAuthResult; }
-        public virtual Task<AuthenticationResult> RegisterUser(Dictionary<Murmur.UserInfo, string> info) { return NullRegisterResult; }
+        public virtual Task<AuthenticationResult> RegisterUser(Dictionary<MumbleServer.UserInfo, string> info) { return NullRegisterResult; }
         public virtual Task<AuthenticatorUpdateResult> UnregisterUser(int id) { return Task.FromResult(AuthenticatorUpdateResult.Failure); }
         public virtual Task<int?> NameToId(string name) { return Task.FromResult<int?>(null); }
         public virtual Task<string> IdToName(int id) { return Task.FromResult<string>(null); }
         public virtual Task<byte[]> IdToTexture(int id) { return Task.FromResult<byte[]>(null); }
         public virtual Task<AuthenticatorUpdateResult> SetTexture(int id, byte[] texture) { return Task.FromResult(AuthenticatorUpdateResult.Failure); }
-        public virtual Task<Dictionary<Murmur.UserInfo, string>> GetInfo(int id) { return Task.FromResult(new Dictionary<Murmur.UserInfo, string>()); }
-        public virtual Task<AuthenticatorUpdateResult> SetInfo(int id, Dictionary<Murmur.UserInfo, string> info) { return Task.FromResult(AuthenticatorUpdateResult.Failure); }
+        public virtual Task<Dictionary<MumbleServer.UserInfo, string>> GetInfo(int id) { return Task.FromResult(new Dictionary<MumbleServer.UserInfo, string>()); }
+        public virtual Task<AuthenticatorUpdateResult> SetInfo(int id, Dictionary<MumbleServer.UserInfo, string> info) { return Task.FromResult(AuthenticatorUpdateResult.Failure); }
         public virtual Task<Dictionary<int, string>> GetRegisteredUsers(string filter) { return Task.FromResult(new Dictionary<int, string>()); }
 
-        public sealed override void authenticate_async(Murmur.AMD_ServerAuthenticator_authenticate cb__, string name, string pw, byte[][] certificates, string certhash, bool certstrong, Ice.Current current__)
+        public sealed async override Task<MumbleServer.ServerAuthenticator_AuthenticateResult> authenticateAsync(string name, string pw, byte[][] certificates, string certhash, bool certstrong, Ice.Current current__)
         {
-            Authenticate(name, pw, certificates, certhash, certstrong).ContinueWith(task => {
-                AuthenticationResult res = NullAuthResult.Result;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response(res.UserId, res.Username, res.Groups);
-            });
+            try {
+                return (MumbleServer.ServerAuthenticator_AuthenticateResult)await Authenticate(name, pw, certificates, certhash, certstrong);
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return (MumbleServer.ServerAuthenticator_AuthenticateResult)NullAuthResult.Result;
+            }
         }
 
-        public sealed override void getInfo_async(Murmur.AMD_ServerAuthenticator_getInfo cb__, int id, Ice.Current current__)
+        public sealed async override Task<MumbleServer.ServerAuthenticator_GetInfoResult> getInfoAsync(int id, Ice.Current current__)
         {
-            GetInfo(id).ContinueWith(task => {
-                Dictionary<Murmur.UserInfo, string> res = null;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response(res != null, res);
-            });
+            try {
+                var info = await GetInfo(id);
+                return new MumbleServer.ServerAuthenticator_GetInfoResult(info != null, info);
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return new MumbleServer.ServerAuthenticator_GetInfoResult(false, null);
+            }
         }
 
-        public sealed override void nameToId_async(Murmur.AMD_ServerAuthenticator_nameToId cb__, string name, Ice.Current current__)
+        public sealed async override Task<int> nameToIdAsync(string name, Ice.Current current__)
         {
-            NameToId(name).ContinueWith(task => {
-                int? res = null;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response(res ?? -2);
-            });
+            try {
+                return (await NameToId(name)) ?? -2;
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return -2;
+            }
         }
 
-        public sealed override void idToName_async(Murmur.AMD_ServerAuthenticator_idToName cb__, int id, Ice.Current current__)
+        public sealed async override Task<string> idToNameAsync(int id, Ice.Current current__)
         {
-            IdToName(id).ContinueWith(task => {
-                string res = null;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Debug.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response(res ?? String.Empty);
-            });
+            try {
+                return (await IdToName(id)) ?? String.Empty;
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine(e, "Authenticator failed");
+                return String.Empty;
+            }
         }
 
-        public sealed override void idToTexture_async(Murmur.AMD_ServerAuthenticator_idToTexture cb__, int id, Ice.Current current__)
+        public sealed async override Task<byte[]> idToTextureAsync(int id, Ice.Current current__)
         {
-            IdToTexture(id).ContinueWith(task => {
-                byte[] res = null;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response(res ?? new byte[0]);
-            });
+            try {
+                return (await IdToTexture(id)) ?? new byte[0];
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return new byte[0];
+            }
         }
 
-        public sealed override void registerUser_async(Murmur.AMD_ServerUpdatingAuthenticator_registerUser cb__, System.Collections.Generic.Dictionary<Murmur.UserInfo, string> info, Ice.Current current__)
+        public sealed async override Task<int> registerUserAsync(System.Collections.Generic.Dictionary<MumbleServer.UserInfo, string> info, Ice.Current current__)
         {
-            RegisterUser(info).ContinueWith(task => {
-                AuthenticationResult res = NullRegisterResult.Result;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response(res.UserId);
-            });
+            try {
+                return (await RegisterUser(info)).UserId;
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return NullRegisterResult.Result.UserId;
+            }
         }
 
-        public sealed override void unregisterUser_async(Murmur.AMD_ServerUpdatingAuthenticator_unregisterUser cb__, int id, Ice.Current current__)
+        public sealed async override Task<int> unregisterUserAsync(int id, Ice.Current current__)
         {
-            UnregisterUser(id).ContinueWith(task => {
-                var res = AuthenticatorUpdateResult.Failure;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response((int)res);
-            });
+            try {
+                return (int)await UnregisterUser(id);
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return (int)AuthenticatorUpdateResult.Failure;
+            }
         }
 
-        public sealed override void getRegisteredUsers_async(Murmur.AMD_ServerUpdatingAuthenticator_getRegisteredUsers cb__, string filter, Ice.Current current__)
+        public sealed async override Task<Dictionary<int, string>> getRegisteredUsersAsync(string filter, Ice.Current current__)
         {
-            GetRegisteredUsers(filter).ContinueWith(task => {
-                Dictionary<int, string> res = null;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response(res);
-            });
+            try {
+                return await GetRegisteredUsers(filter);
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return null;
+            }
         }
 
-        public sealed override void setInfo_async(Murmur.AMD_ServerUpdatingAuthenticator_setInfo cb__, int id, System.Collections.Generic.Dictionary<Murmur.UserInfo, string> info, Ice.Current current__)
+        public sealed async override Task<int> setInfoAsync(int id, System.Collections.Generic.Dictionary<MumbleServer.UserInfo, string> info, Ice.Current current__)
         {
-            SetInfo(id, info).ContinueWith(task => {
-                var res = AuthenticatorUpdateResult.Failure;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response((int)res);
-            });
+            try {
+                return (int)await SetInfo(id, info);
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return (int)AuthenticatorUpdateResult.Failure;
+            }
         }
 
-        public sealed override void setTexture_async(Murmur.AMD_ServerUpdatingAuthenticator_setTexture cb__, int id, byte[] tex, Ice.Current current__)
+        public sealed async override Task<int> setTextureAsync(int id, byte[] tex, Ice.Current current__)
         {
-            SetTexture(id, tex).ContinueWith(task => {
-                var res = AuthenticatorUpdateResult.Failure;
-                try {
-                    res = task.Result;
-                } catch (Exception e) {
-                    System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
-                }
-
-                cb__.ice_response((int)res);
-            });
+            try {
+                return (int)await SetTexture(id, tex);
+            } catch (Exception e) {
+                System.Diagnostics.Trace.WriteLine(e, "Authenticator failed");
+                return (int)AuthenticatorUpdateResult.Failure;
+            }
         }
     }
 }
