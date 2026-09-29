@@ -164,7 +164,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MumbleServer.cs" />
-    <Compile Include="Wrapped\FixIce.cs" />
     <Compile Include="Wrapped\CallbackContext.cs" />
     <Compile Include="Wrapped\Server.cs" />
     <Compile Include="Wrapped\MumblePermissions.cs" />

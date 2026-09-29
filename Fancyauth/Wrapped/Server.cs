@@ -20,74 +20,74 @@ namespace Fancyauth.Wrapped
             S = inner;
         }
 
-        public Task<bool> IsRunning() { return FixIce.FromAsync(S.begin_isRunning, S.end_isRunning); }
-        public Task Start() { return FixIce.FromAsyncVoid(S.begin_start, S.end_start); }
-        public Task Delete() { return FixIce.FromAsyncVoid(S.begin_delete, S.end_delete); }
-        public Task<int> GetId() { return FixIce.FromAsync(S.begin_id, S.end_id); }
-        public Task AddCallback(MumbleServer.ServerCallbackPrx sc) { return FixIce.FromAsyncVoid(sc, S.begin_addCallback, S.end_addCallback); }
-        public Task RemoveCallback(MumbleServer.ServerCallbackPrx sc) { return FixIce.FromAsyncVoid(sc, S.begin_removeCallback, S.end_removeCallback); }
-        public Task SetAuthenticator(MumbleServer.ServerAuthenticatorPrx sa) { return FixIce.FromAsyncVoid(sa, S.begin_setAuthenticator, S.end_setAuthenticator); }
-        public Task<string> GetConf(string key) { return FixIce.FromAsync(key, S.begin_getConf, S.end_getConf); }
-        public Task<Dictionary<string, string>> GetAllConf() { return FixIce.FromAsync(S.begin_getAllConf, S.end_getAllConf); }
-        public Task SetConf(string key, string value) { return FixIce.FromAsyncVoid(key, value, S.begin_setConf, S.end_setConf); }
-        public Task SetSuperuserPassword(string pw) { return FixIce.FromAsyncVoid(pw, S.begin_setSuperuserPassword, S.end_setSuperuserPassword); }
-        public Task<MumbleServer.LogEntry[]> GetLog(int first, int last) { return FixIce.FromAsync(first, last, S.begin_getLog, S.end_getLog); }
-        public Task<int> GetLogLen() { return FixIce.FromAsync(S.begin_getLogLen, S.end_getLogLen); }
-        public Task<Dictionary<int, MumbleServer.User>> GetUsers() { return FixIce.FromAsync(S.begin_getUsers, S.end_getUsers); }
-        public Task<Dictionary<int, MumbleServer.Channel>> GetChannels() { return FixIce.FromAsync(S.begin_getChannels, S.end_getChannels); }
-        public Task<byte[][]> GetCertificateList(int session) { return FixIce.FromAsync(session, S.begin_getCertificateList, S.end_getCertificateList); }
-        public Task<MumbleServer.Tree> GetTree() { return FixIce.FromAsync(S.begin_getTree, S.end_getTree); }
-        public Task<MumbleServer.Ban[]> GetBans() { return FixIce.FromAsync(S.begin_getBans, S.end_getBans); }
-        public Task SetBans(MumbleServer.Ban[] bans) { return FixIce.FromAsyncVoid(bans, S.begin_setBans, S.end_setBans); }
-        public Task KickUser(int session, string reason) { return FixIce.FromAsyncVoid(session, reason, S.begin_kickUser, S.end_kickUser); }
-        public Task<MumbleServer.User> GetState(int session) { return FixIce.FromAsync(session, S.begin_getState, S.end_getState); }
-        public Task SetState(MumbleServer.User state) { return FixIce.FromAsyncVoid(state, S.begin_setState, S.end_setState); }
-        public Task SendMessage(int userSession, string text) { return FixIce.FromAsyncVoid(userSession, text, S.begin_sendMessage, S.end_sendMessage); }
-        public Task<bool> HasPermission(int session, int channelid, MumblePermissions perm) { return FixIce.FromAsync(session, channelid, (int)perm, S.begin_hasPermission, S.end_hasPermission); }
+        public Task<bool> IsRunning() { return S.isRunningAsync(); }
+        public Task Start() { return S.startAsync(); }
+        public Task Delete() { return S.deleteAsync(); }
+        public Task<int> GetId() { return S.idAsync(); }
+        public Task AddCallback(MumbleServer.ServerCallbackPrx sc) { return S.addCallbackAsync(sc); }
+        public Task RemoveCallback(MumbleServer.ServerCallbackPrx sc) { return S.removeCallbackAsync(sc); }
+        public Task SetAuthenticator(MumbleServer.ServerAuthenticatorPrx sa) { return S.setAuthenticatorAsync(sa); }
+        public Task<string> GetConf(string key) { return S.getConfAsync(key); }
+        public Task<Dictionary<string, string>> GetAllConf() { return S.getAllConfAsync(); }
+        public Task SetConf(string key, string value) { return S.setConfAsync(key, value); }
+        public Task SetSuperuserPassword(string pw) { return S.setSuperuserPasswordAsync(pw); }
+        public Task<MumbleServer.LogEntry[]> GetLog(int first, int last) { return S.getLogAsync(first, last); }
+        public Task<int> GetLogLen() { return S.getLogLenAsync(); }
+        public Task<Dictionary<int, MumbleServer.User>> GetUsers() { return S.getUsersAsync(); }
+        public Task<Dictionary<int, MumbleServer.Channel>> GetChannels() { return S.getChannelsAsync(); }
+        public Task<byte[][]> GetCertificateList(int session) { return S.getCertificateListAsync(session); }
+        public Task<MumbleServer.Tree> GetTree() { return S.getTreeAsync(); }
+        public Task<MumbleServer.Ban[]> GetBans() { return S.getBansAsync(); }
+        public Task SetBans(MumbleServer.Ban[] bans) { return S.setBansAsync(bans); }
+        public Task KickUser(int session, string reason) { return S.kickUserAsync(session, reason); }
+        public Task<MumbleServer.User> GetState(int session) { return S.getStateAsync(session); }
+        public Task SetState(MumbleServer.User state) { return S.setStateAsync(state); }
+        public Task SendMessage(int userSession, string text) { return S.sendMessageAsync(userSession, text); }
+        public Task<bool> HasPermission(int session, int channelid, MumblePermissions perm) { return S.hasPermissionAsync(session, channelid, (int)perm); }
 
         public async Task<MumblePermissions> EffectivePermissions(int session, int channelid)
         {
-            int res = await FixIce.FromAsync(session, channelid, S.begin_effectivePermissions, S.end_effectivePermissions);
+            int res = await S.effectivePermissionsAsync(session, channelid);
             return (MumblePermissions)res;
         }
 
         public Task AddContextCallback(int session, string action, string text, MumbleServer.ServerContextCallbackPrx cb, CallbackContext ctx)
         {
-            return FixIce.FromAsyncVoid(session, action, text, cb, (int)ctx, S.begin_addContextCallback, S.end_addContextCallback);
+            return S.addContextCallbackAsync(session, action, text, cb, (int)ctx);
         }
 
-        public Task RemoveContextCallback(MumbleServer.ServerContextCallbackPrx cb) { return FixIce.FromAsyncVoid(cb, S.begin_removeContextCallback, S.end_removeContextCallback); }
-        public Task<MumbleServer.Channel> GetChannelState(int chanid) { return FixIce.FromAsync(chanid, S.begin_getChannelState, S.end_getChannelState); }
-        public Task SetChannelState(MumbleServer.Channel state) { return FixIce.FromAsyncVoid(state, S.begin_setChannelState, S.end_setChannelState); }
-        public Task RemoveChannel(int chanid) { return FixIce.FromAsyncVoid(chanid, S.begin_removeChannel, S.end_removeChannel); }
-        public Task<int> AddChannel(string name, int parent) { return FixIce.FromAsync(name, parent, S.begin_addChannel, S.end_addChannel); }
-        public Task SendMessageChannel(int chanid, bool tree, string text) { return FixIce.FromAsyncVoid(chanid, tree, text, S.begin_sendMessageChannel, S.end_sendMessageChannel); }
-        public Task SetACL(int chanid, ACLData data) { return FixIce.FromAsyncVoid(chanid, data.ACLs, data.Groups, data.Inherit, S.begin_setACL, S.end_setACL); }
+        public Task RemoveContextCallback(MumbleServer.ServerContextCallbackPrx cb) { return S.removeContextCallbackAsync(cb); }
+        public Task<MumbleServer.Channel> GetChannelState(int chanid) { return S.getChannelStateAsync(chanid); }
+        public Task SetChannelState(MumbleServer.Channel state) { return S.setChannelStateAsync(state); }
+        public Task RemoveChannel(int chanid) { return S.removeChannelAsync(chanid); }
+        public Task<int> AddChannel(string name, int parent) { return S.addChannelAsync(name, parent); }
+        public Task SendMessageChannel(int chanid, bool tree, string text) { return S.sendMessageChannelAsync(chanid, tree, text); }
+        public Task SetACL(int chanid, ACLData data) { return S.setACLAsync(chanid, data.ACLs, data.Groups, data.Inherit); }
 
-        public Task<ACLData> GetACL(int chanid)
+        public async Task<ACLData> GetACL(int chanid)
         {
-            return FixIce.FromAsync(chanid, S.begin_getACL, ar =>
-            {
-                var data = new ACLData();
-                S.end_getACL(out data.ACLs, out data.Groups, out data.Inherit, ar);
-                return data;
-            });
+            var data = new ACLData();
+            var acls = await S.getACLAsync(chanid);
+            data.ACLs = acls.acls;
+            data.Groups = acls.groups;
+            data.Inherit = acls.inherit;
+            return data;
         }
 
-        public Task AddUserToGroup(int chanid, int sess, string grp) { return FixIce.FromAsyncVoid(chanid, sess, grp, S.begin_addUserToGroup, S.end_addUserToGroup); }
-        public Task RemoveUserFromGroup(int chanid, int sess, string grp) { return FixIce.FromAsyncVoid(chanid, sess, grp, S.begin_removeUserFromGroup, S.end_removeUserFromGroup); }
-        public Task RedirectWhisperGroup(int sess, string src, string target) { return FixIce.FromAsyncVoid(sess, src, target, S.begin_redirectWhisperGroup, S.end_redirectWhisperGroup); }
-        public Task<Dictionary<int, string>> GetUserNames(params int[] ids) { return FixIce.FromAsync(ids, S.begin_getUserNames, S.end_getUserNames); }
-        public Task<Dictionary<string, int>> GetUserIds(params string[] names) { return FixIce.FromAsync(names, S.begin_getUserIds, S.end_getUserIds); }
-        public Task<int> RegisterUser(Dictionary<MumbleServer.UserInfo, string> ui) { return FixIce.FromAsync(ui, S.begin_registerUser, S.end_registerUser); }
-        public Task UnregisterUser(int userid) { return FixIce.FromAsyncVoid(userid, S.begin_unregisterUser, S.end_unregisterUser); }
-        public Task UpdateRegistration(int uid, Dictionary<MumbleServer.UserInfo, string> ui) { return FixIce.FromAsyncVoid(uid, ui, S.begin_updateRegistration, S.end_updateRegistration); }
-        public Task<Dictionary<MumbleServer.UserInfo, string>> GetRegistration(int userid) { return FixIce.FromAsync(userid, S.begin_getRegistration, S.end_getRegistration); }
-        public Task<Dictionary<int, string>> GetRegisteredUsers(string filter) { return FixIce.FromAsync(filter, S.begin_getRegisteredUsers, S.end_getRegisteredUsers); }
-        public Task<int> VerifyPassword(string name, string pw) { return FixIce.FromAsync(name, pw, S.begin_verifyPassword, S.end_verifyPassword); }
-        public Task<byte[]> GetTexture(int userid) { return FixIce.FromAsync(userid, S.begin_getTexture, S.end_getTexture); }
-        public Task SetTexture(int userid, byte[] tex) { return FixIce.FromAsyncVoid(userid, tex, S.begin_setTexture, S.end_setTexture); }
-        public Task<int> GetUptime() { return FixIce.FromAsync(S.begin_getUptime, S.end_getUptime); }
+        public Task AddUserToGroup(int chanid, int sess, string grp) { return S.addUserToGroupAsync(chanid, sess, grp); }
+        public Task RemoveUserFromGroup(int chanid, int sess, string grp) { return S.removeUserFromGroupAsync(chanid, sess, grp); }
+        public Task RedirectWhisperGroup(int sess, string src, string target) { return S.redirectWhisperGroupAsync(sess, src, target); }
+        public Task<Dictionary<int, string>> GetUserNames(params int[] ids) { return S.getUserNamesAsync(ids); }
+        public Task<Dictionary<string, int>> GetUserIds(params string[] names) { return S.getUserIdsAsync(names); }
+        public Task<int> RegisterUser(Dictionary<MumbleServer.UserInfo, string> ui) { return S.registerUserAsync(ui); }
+        public Task UnregisterUser(int userid) { return S.unregisterUserAsync(userid); }
+        public Task UpdateRegistration(int uid, Dictionary<MumbleServer.UserInfo, string> ui) { return S.updateRegistrationAsync(uid, ui); }
+        public Task<Dictionary<MumbleServer.UserInfo, string>> GetRegistration(int userid) { return S.getRegistrationAsync(userid); }
+        public Task<Dictionary<int, string>> GetRegisteredUsers(string filter) { return S.getRegisteredUsersAsync(filter); }
+        public Task<int> VerifyPassword(string name, string pw) { return S.verifyPasswordAsync(name, pw); }
+        public Task<byte[]> GetTexture(int userid) { return S.getTextureAsync(userid); }
+        public Task SetTexture(int userid, byte[] tex) { return S.setTextureAsync(userid, tex); }
+        public Task<int> GetUptime() { return S.getUptimeAsync(); }
 
         public class ACLData
         {
