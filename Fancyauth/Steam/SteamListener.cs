@@ -1,5 +1,6 @@
 ﻿using System;
 using SteamKit2;
+using SteamKit2.Authentication;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Threading;
@@ -59,7 +60,6 @@ namespace Fancyauth.Steam
                 CallbackManager.Subscribe<SteamClient.DisconnectedCallback>(OnDisconnected);
                 CallbackManager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
                 CallbackManager.Subscribe<SteamUser.LoggedOffCallback>(OnLoggedOff);
-                CallbackManager.Subscribe<SteamUser.UpdateMachineAuthCallback>(OnMachineAuth);
                 CallbackManager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo);
                 CallbackManager.Subscribe<SteamFriends.FriendsListCallback>(OnFriendsList);
                 CallbackManager.Subscribe<SteamFriends.PersonaStateCallback>(OnPersonaState);
@@ -84,18 +84,45 @@ namespace Fancyauth.Steam
             return tcs.Task;
         }
 
-        private void OnConnected(SteamClient.ConnectedCallback callback)
+        private async void OnConnected(SteamClient.ConnectedCallback callback)
         {
+            string previouslyStoredGuardData = null; // we have steam guard disabled (hopefully)
             Trace.WriteLine("Connected to Steam! Logging in ...", "Steam");
-            byte[] sentryHash = null;
-            if (System.IO.File.Exists("sentry.bin"))
-                sentryHash = CryptoHelper.SHAHash(System.IO.File.ReadAllBytes("sentry.bin"));
-            SteamUser.LogOn(new SteamUser.LogOnDetails {
+            var authSession = await SteamClient.Authentication.BeginAuthSessionViaCredentialsAsync(new AuthSessionDetails
+            {
                 Username = User,
                 Password = Pass,
-                AuthCode = SteamGuardCode,
-                SentryFileHash = sentryHash,
-            });
+                IsPersistentSession = true,
+
+                // See NewGuardData comment below
+                GuardData = previouslyStoredGuardData,
+
+                /// <see cref="UserConsoleAuthenticator"/> is the default authenticator implemention provided by SteamKit
+                /// for ease of use which blocks the thread and asks for user input to enter the code.
+                /// However, if you require special handling (e.g. you have the TOTP secret and can generate codes on the fly),
+                /// you can implement your own <see cref="SteamKit2.Authentication.IAuthenticator"/>.
+                Authenticator = new UserConsoleAuthenticator(),
+            } );
+
+            // Starting polling Steam for authentication response
+            var pollResponse = await authSession.PollingWaitForResultAsync();
+
+            if ( pollResponse.NewGuardData != null )
+            {
+                // When using certain two factor methods (such as email 2fa), guard data may be provided by Steam
+                // for use in future authentication sessions to avoid triggering 2FA again (this works similarly to the old sentry file system).
+                // Do note that this guard data is also a JWT token and has an expiration date.
+                previouslyStoredGuardData = pollResponse.NewGuardData;
+            }
+
+            // Logon to Steam with the access token we have received
+            // Note that we are using RefreshToken for logging on here
+            SteamUser.LogOn( new SteamUser.LogOnDetails
+            {
+                Username = pollResponse.AccountName,
+                AccessToken = pollResponse.RefreshToken,
+                ShouldRememberPassword = true,
+            } );
         }
 
         private void OnDisconnected(SteamClient.DisconnectedCallback callback)
@@ -107,15 +134,7 @@ namespace Fancyauth.Steam
 
         private void OnLoggedOn(SteamUser.LoggedOnCallback callback)
         {
-            bool isSteamGuard = callback.Result == EResult.AccountLogonDenied;
-            bool is2FA = callback.Result == EResult.AccountLoginDeniedNeedTwoFactor;
-
-            if (isSteamGuard || is2FA)
-            {
-                Trace.WriteLine("This account is SteamGuard protected!", "Steam");
-                SteamGuardCode = SteamGuardProvider();
-            }
-            else if (callback.Result != EResult.OK)
+            if (callback.Result != EResult.OK)
                 Trace.WriteLine(string.Format("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult), "Steam");
             else
                 Trace.WriteLine("Successfully logged on!", "Steam");
@@ -124,31 +143,6 @@ namespace Fancyauth.Steam
         private void OnLoggedOff(SteamUser.LoggedOffCallback callback)
         {
             Trace.WriteLine(string.Format("Logged off of Steam: {0}", callback.Result), "Steam");
-        }
-
-        private void OnMachineAuth(SteamUser.UpdateMachineAuthCallback callback)
-        {
-            Trace.WriteLine("Updating sentryfile...", "Steam.Sentry");
-            byte[] sentryHash = CryptoHelper.SHAHash(callback.Data);
-            File.WriteAllBytes("sentry.bin", callback.Data);
-
-            SteamUser.SendMachineAuthResponse(new SteamUser.MachineAuthDetails {
-                JobID = callback.JobID,
-
-                FileName = callback.FileName,
-
-                BytesWritten = callback.BytesToWrite,
-                FileSize = callback.Data.Length,
-                Offset = callback.Offset,
-
-                Result = EResult.OK,
-                LastError = 0,
-
-                OneTimePassword = callback.OneTimePassword,
-                SentryFileHash = sentryHash,
-            });
-
-            Trace.WriteLine("Done!", "Steam.Sentry");
         }
 
         private void OnAccountInfo(SteamUser.AccountInfoCallback callback)
