@@ -42,6 +42,11 @@ namespace Fancyauth
                 initdat.dispatcher = (act, conn) => Task.Run(act); // prevent weird deadlocks
                 var iceProps = Ice.Util.createProperties();
                 iceProps.setProperty("Ice.MessageSizeMax", "10240");
+                // fancyauth exits when its connection to Mumble closes (below), so Ice must not close it when idle: heartbeats instead.
+                iceProps.setProperty("Ice.ACM.Client.Close", "0"); // CloseOff
+                iceProps.setProperty("Ice.ACM.Client.Heartbeat", "3"); // HeartbeatAlways
+                // While waiting for Mumble, an attempt at an address that's gone gives up after 2 s instead of minutes.
+                iceProps.setProperty("Ice.Override.ConnectTimeout", "2000");
                 // Mumble's icesecretwrite, sent with every call.
                 var iceSecret = Settings.Optional("MUMBLE_ICE_SECRET");
                 if (iceSecret != null)
@@ -54,9 +59,25 @@ namespace Fancyauth
                 // Where Mumble calls back: an address Mumble can reach, as it registers this endpoint.
                 var adapter = communicator.createObjectAdapterWithEndpoints("Callback.Client",
                     Settings.Optional("FANCYAUTH_CALLBACK_ENDPOINT", "tcp -h 127.0.1.2 -p 31338"));
-                var meta = MumbleServer.MetaPrxHelper.checkedCast(communicator.stringToProxy(
-                    Settings.Optional("MUMBLE_ICE", "Meta:tcp -h 127.0.1.1 -p 6502")));
-                var rawServer = await meta.getServerAsync(1);
+                // Mumble may be starting or restarting: wait for it instead of failing, which would only make Kubernetes wait longer.
+                MumbleServer.MetaPrx meta;
+                MumbleServer.ServerPrx rawServer;
+                for (var waiting = false; ; waiting = true)
+                {
+                    try
+                    {
+                        meta = MumbleServer.MetaPrxHelper.checkedCast(communicator.stringToProxy(
+                            Settings.Optional("MUMBLE_ICE", "Meta:tcp -h 127.0.1.1 -p 6502")));
+                        rawServer = await meta.getServerAsync(1);
+                        break;
+                    }
+                    catch (Ice.LocalException e)
+                    {
+                        if (!waiting)
+                            Console.WriteLine($"waiting for Mumble, retrying every 2 s: {e.GetType().Name}");
+                        await Task.Delay(TimeSpan.FromSeconds(2));
+                    }
+                }
 
                 var server = new Server(rawServer);
 
@@ -76,6 +97,15 @@ namespace Fancyauth
                 await server.AddCallback(MumbleServer.ServerCallbackPrxHelper.uncheckedCast(asci));
                 await server.AddCallback(MumbleServer.ServerCallbackPrxHelper.uncheckedCast(asci2));
                 await server.SetAuthenticator(MumbleServer.ServerAuthenticatorPrxHelper.uncheckedCast(authenticator));
+
+                // Mumble forgets its callbacks and authenticator when it restarts, and then refuses every login (Mumble 1.5 on
+                // Postgres even stops on a known user's login). So exit when the connection closes: Kubernetes starts fancyauth again,
+                // which waits for Mumble above and registers anew. Called at once if the connection has closed meanwhile.
+                (await rawServer.ice_getConnectionAsync()).setCloseCallback(_ =>
+                {
+                    Console.WriteLine("connection to Mumble closed: exiting, to register again after the restart");
+                    Environment.Exit(1);
+                });
 
                 await UpdateChannelModel(server);
 
