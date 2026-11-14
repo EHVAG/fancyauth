@@ -42,30 +42,27 @@ namespace Fancyauth
                 initdat.dispatcher = (act, conn) => Task.Run(act); // prevent weird deadlocks
                 var iceProps = Ice.Util.createProperties();
                 iceProps.setProperty("Ice.MessageSizeMax", "10240");
+                // Mumble's icesecretwrite, sent with every call.
+                var iceSecret = Settings.Optional("MUMBLE_ICE_SECRET");
+                if (iceSecret != null)
+                    iceProps.setProperty("Ice.ImplicitContext", "Shared");
                 initdat.properties = iceProps;
                 communicator = Ice.Util.initialize(initdat);
+                if (iceSecret != null)
+                    communicator.getImplicitContext().put("secret", iceSecret);
 
-                #if DEBUG
-                var adapter = communicator.createObjectAdapterWithEndpoints("Callback.Client", "tcp -h 127.0.1.1 -p 31338");
-                var rawServer = MumbleServer.ServerPrxHelper.checkedCast(communicator.stringToProxy("s/1 -t -e 1.1:tcp -h 127.0.0.1 -p 31337"));
-                #else
-                var adapter = communicator.createObjectAdapterWithEndpoints("Callback.Client", "tcp -h 127.0.1.2 -p 31338");
-                var meta = MumbleServer.MetaPrxHelper.checkedCast(communicator.stringToProxy("Meta:tcp -h 127.0.1.1 -p 6502"));
+                // Where Mumble calls back: an address Mumble can reach, as it registers this endpoint.
+                var adapter = communicator.createObjectAdapterWithEndpoints("Callback.Client",
+                    Settings.Optional("FANCYAUTH_CALLBACK_ENDPOINT", "tcp -h 127.0.1.2 -p 31338"));
+                var meta = MumbleServer.MetaPrxHelper.checkedCast(communicator.stringToProxy(
+                    Settings.Optional("MUMBLE_ICE", "Meta:tcp -h 127.0.1.1 -p 6502")));
                 var rawServer = await meta.getServerAsync(1);
-                #endif
-
-                Console.Write("Steam user: ");
-                var steamUser = Console.ReadLine();
-                Console.Write("Steam password: ");
-                var steamPassword = Console.ReadLine();
 
                 var server = new Server(rawServer);
 
-                var steamListener = new SteamListener(steamUser, steamPassword, () =>
-                {
-                    Console.Write("Steam guard code: ");
-                    return Console.ReadLine();
-                }, new SteamEventForwarder { Server = server }, StashCallback);
+                // Steam is optional: without credentials, or if its login fails, fancyauth runs without it.
+                var steamListener = new SteamListener(Settings.Optional("STEAM_USER"), Settings.Optional("STEAM_PASSWORD"),
+                    new SteamEventForwarder { Server = server }, StashCallback);
                 var steamTask = steamListener.Run();
 
                 var cmdmgr = new CommandManager();

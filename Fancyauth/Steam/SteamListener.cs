@@ -1,32 +1,35 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using SteamKit2;
 using SteamKit2.Authentication;
-using System.Threading.Tasks;
-using System.Net.Sockets;
-using System.Threading;
-using System.Diagnostics;
-using System.IO;
 
 namespace Fancyauth.Steam
 {
     public class SteamListener
     {
+        private static readonly TimeSpan NormalDelay = TimeSpan.FromMinutes(5);
+
         private readonly SteamClient SteamClient;
         private readonly CallbackManager CallbackManager;
         private readonly SteamUser SteamUser;
         private readonly SteamFriends SteamFriends;
         private readonly string User;
         private readonly string Pass;
-        private readonly Func<string> SteamGuardProvider;
-        private string SteamGuardCode;
         private readonly ISteamEventForwarder EventForwarder;
         private readonly Action<Task> AsyncCompleter;
 
-        public SteamListener(string user, string pass, Func<string> steamGuardProvider, ISteamEventForwarder forwarder, Action<Task> asyncCompleter)
+        // Set when Steam refuses the credentials: retrying can't help and counts against its rate limit, so Steam stays off
+        // until the next restart. Other failures, like an outage, reconnect after ReconnectDelay.
+        private bool LoginFailed;
+        private TimeSpan ReconnectDelay = NormalDelay;
+        private CancellationToken Cancellation;
+
+        public SteamListener(string user, string pass, ISteamEventForwarder forwarder, Action<Task> asyncCompleter)
         {
             User = user;
             Pass = pass;
-            SteamGuardProvider = steamGuardProvider;
             EventForwarder = forwarder;
             AsyncCompleter = asyncCompleter;
 
@@ -38,7 +41,7 @@ namespace Fancyauth.Steam
 
         public uint? GetCurrentGameId(SteamID steamid)
         {
-            var appId = this.SteamFriends.GetFriendGamePlayed(steamid).AppID;
+            var appId = SteamFriends.GetFriendGamePlayed(steamid).AppID;
             return appId == 0 ? (uint?)null : appId;
         }
 
@@ -52,97 +55,98 @@ namespace Fancyauth.Steam
             SteamFriends.AddFriend(steamid);
         }
 
-        public Task Run(CancellationToken cancellation = default(CancellationToken))
+        // Handles Steam's callbacks until cancelled. Handlers run one at a time, in this loop.
+        public async Task Run(CancellationToken cancellation = default)
         {
-            var tcs = new TaskCompletionSource<object>();
-            var steamThread = new Thread(() => {
-                CallbackManager.Subscribe<SteamClient.ConnectedCallback>(OnConnected);
-                CallbackManager.Subscribe<SteamClient.DisconnectedCallback>(OnDisconnected);
-                CallbackManager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
-                CallbackManager.Subscribe<SteamUser.LoggedOffCallback>(OnLoggedOff);
-                CallbackManager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo);
-                CallbackManager.Subscribe<SteamFriends.FriendsListCallback>(OnFriendsList);
-                CallbackManager.Subscribe<SteamFriends.PersonaStateCallback>(OnPersonaState);
-                CallbackManager.Subscribe<SteamFriends.FriendMsgCallback>(OnChatMessage);
-                Trace.WriteLine("Connecting ...", "Steam");
-                SteamClient.Connect();
-                while (!cancellation.IsCancellationRequested)
-                {
-                    try
-                    {
-                        CallbackManager.RunWaitCallbacks();
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.WriteLine((object) ex, "Steam callback exception");
-                    }
-                }
-                tcs.SetCanceled();
-            });
-            steamThread.Name = "Steam thread";
-            steamThread.Start();
-            return tcs.Task;
-        }
-
-        private async void OnConnected(SteamClient.ConnectedCallback callback)
-        {
-            string previouslyStoredGuardData = null; // we have steam guard disabled (hopefully)
-            Trace.WriteLine("Connected to Steam! Logging in ...", "Steam");
-            var authSession = await SteamClient.Authentication.BeginAuthSessionViaCredentialsAsync(new AuthSessionDetails
+            if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(Pass))
             {
-                Username = User,
-                Password = Pass,
-                IsPersistentSession = true,
-
-                // See NewGuardData comment below
-                GuardData = previouslyStoredGuardData,
-
-                /// <see cref="UserConsoleAuthenticator"/> is the default authenticator implemention provided by SteamKit
-                /// for ease of use which blocks the thread and asks for user input to enter the code.
-                /// However, if you require special handling (e.g. you have the TOTP secret and can generate codes on the fly),
-                /// you can implement your own <see cref="SteamKit2.Authentication.IAuthenticator"/>.
-                Authenticator = new UserConsoleAuthenticator(),
-            } );
-
-            // Starting polling Steam for authentication response
-            var pollResponse = await authSession.PollingWaitForResultAsync();
-
-            if ( pollResponse.NewGuardData != null )
-            {
-                // When using certain two factor methods (such as email 2fa), guard data may be provided by Steam
-                // for use in future authentication sessions to avoid triggering 2FA again (this works similarly to the old sentry file system).
-                // Do note that this guard data is also a JWT token and has an expiration date.
-                previouslyStoredGuardData = pollResponse.NewGuardData;
+                Trace.WriteLine("No credentials (STEAM_USER, STEAM_PASSWORD): not connecting", "Steam");
+                return;
             }
+            Cancellation = cancellation;
 
-            // Logon to Steam with the access token we have received
-            // Note that we are using RefreshToken for logging on here
-            SteamUser.LogOn( new SteamUser.LogOnDetails
+            using var subscriptions = new Subscriptions(
+                CallbackManager.Subscribe<SteamClient.ConnectedCallback>(OnConnected),
+                CallbackManager.Subscribe<SteamClient.DisconnectedCallback>(OnDisconnected),
+                CallbackManager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn),
+                CallbackManager.Subscribe<SteamUser.LoggedOffCallback>(OnLoggedOff),
+                CallbackManager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo),
+                CallbackManager.Subscribe<SteamFriends.FriendMsgCallback>(OnChatMessage));
+
+            Trace.WriteLine("Connecting ...", "Steam");
+            SteamClient.Connect();
+            while (!cancellation.IsCancellationRequested)
             {
-                Username = pollResponse.AccountName,
-                AccessToken = pollResponse.RefreshToken,
-                ShouldRememberPassword = true,
-            } );
+                try
+                {
+                    await CallbackManager.RunWaitCallbackAsync(cancellation);
+                }
+                catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+                {
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine(ex, "Steam callback exception");
+                }
+            }
         }
 
-        private void OnDisconnected(SteamClient.DisconnectedCallback callback)
+        private async Task OnConnected(SteamClient.ConnectedCallback callback)
         {
-            Trace.WriteLine("Disconnected from Steam, reconnecting in 5 minutes...", "Steam");
-            Thread.Sleep(TimeSpan.FromMinutes(5));
+            Trace.WriteLine("Connected to Steam! Logging in ...", "Steam");
+            try
+            {
+                var authSession = await SteamClient.Authentication.BeginAuthSessionViaCredentialsAsync(new AuthSessionDetails
+                {
+                    Username = User,
+                    Password = Pass,
+                    IsPersistentSession = true,
+                    Authenticator = new NoCodeAuthenticator(),
+                });
+                var pollResponse = await authSession.PollingWaitForResultAsync(Cancellation);
+
+                // The refresh token is what logs on; the result arrives as LoggedOnCallback.
+                SteamUser.LogOn(new SteamUser.LogOnDetails
+                {
+                    Username = pollResponse.AccountName,
+                    AccessToken = pollResponse.RefreshToken,
+                    ShouldRememberPassword = true,
+                });
+            }
+            catch (Exception ex) when (ex is SteamGuardRequiredException || ex.InnerException is SteamGuardRequiredException)
+            {
+                LoginFailure(EResult.AccountLoginDeniedNeedTwoFactor, ex.Message);
+                SteamClient.Disconnect();
+            }
+            catch (Exception ex) when (!Cancellation.IsCancellationRequested)
+            {
+                LoginFailure((ex as AuthenticationException)?.Result, ex.Message);
+                SteamClient.Disconnect();
+            }
+        }
+
+        private async Task OnDisconnected(SteamClient.DisconnectedCallback callback)
+        {
+            if (LoginFailed || callback.UserInitiated && Cancellation.IsCancellationRequested)
+                return;
+            var delay = ReconnectDelay;
+            ReconnectDelay = NormalDelay;
+            Trace.WriteLine($"Disconnected from Steam, reconnecting in {delay}", "Steam");
+            await Task.Delay(delay, Cancellation);
             SteamClient.Connect();
         }
 
         private void OnLoggedOn(SteamUser.LoggedOnCallback callback)
         {
-            if (callback.Result != EResult.OK)
-                Trace.WriteLine(string.Format("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult), "Steam");
-            else
+            if (callback.Result == EResult.OK)
                 Trace.WriteLine("Successfully logged on!", "Steam");
+            else
+                LoginFailure(callback.Result, $"{callback.Result} / {callback.ExtendedResult}");
         }
 
         private void OnLoggedOff(SteamUser.LoggedOffCallback callback)
         {
-            Trace.WriteLine(string.Format("Logged off of Steam: {0}", callback.Result), "Steam");
+            Trace.WriteLine($"Logged off of Steam: {callback.Result}", "Steam");
         }
 
         private void OnAccountInfo(SteamUser.AccountInfoCallback callback)
@@ -150,19 +154,38 @@ namespace Fancyauth.Steam
             SteamFriends.SetPersonaState(EPersonaState.Online);
         }
 
-        private void OnFriendsList(SteamFriends.FriendsListCallback callback)
-        {
-        }
-
-        private void OnPersonaState(SteamFriends.PersonaStateCallback callback)
-        {
-        }
-
+        // Forwarding talks to Mumble, so it runs beside the loop rather than holding it up.
         private void OnChatMessage(SteamFriends.FriendMsgCallback callback)
         {
             if (callback.EntryType == EChatEntryType.ChatMsg)
-                AsyncCompleter(this.EventForwarder.OnChatMessage(this, callback.Sender, callback.Message));
+                AsyncCompleter(EventForwarder.OnChatMessage(this, callback.Sender, callback.Message));
+        }
+
+        // Logs a failed login, and decides whether to try again.
+        private void LoginFailure(EResult? result, string reason)
+        {
+            if (result == EResult.RateLimitExceeded)
+                ReconnectDelay = TimeSpan.FromHours(1);
+            LoginFailed = result.HasValue && IsPermanent(result.Value);
+            Trace.WriteLine(LoginFailed
+                ? $"Login refused, Steam stays off until the next restart: {reason}"
+                : $"Login failed, trying again in {ReconnectDelay}: {reason}", "Steam");
+        }
+
+        private static bool IsPermanent(EResult result) =>
+            result == EResult.InvalidPassword || result == EResult.AccessDenied || result == EResult.AccountLogonDenied
+            || result == EResult.AccountLoginDeniedNeedTwoFactor || result == EResult.InvalidLoginAuthCode
+            || result == EResult.TwoFactorCodeMismatch;
+
+        private sealed class Subscriptions : IDisposable
+        {
+            private readonly IDisposable[] All;
+            public Subscriptions(params IDisposable[] all) => All = all;
+            public void Dispose()
+            {
+                foreach (var subscription in All)
+                    subscription.Dispose();
+            }
         }
     }
 }
-

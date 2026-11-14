@@ -17,7 +17,9 @@ using System.Runtime.CompilerServices;
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
 
-[assembly: AssemblyVersion("1.0.*")]
+// Fixed, and above the generated versions (1.0.5588.*, 1.0.5612.*) that existing plugin binaries reference:
+// .NET only binds a reference to an equal or higher version. Keep the public types as they are.
+[assembly: AssemblyVersion("1.0.9999.0")]
 
 // The following attributes are used to specify the signing key for the assembly,
 // if desired. See the Mono documentation for more information about signing.

@@ -9,8 +9,11 @@ namespace Fancyauth
 {
     internal class FancyContext : FancyContextBase
     {
+        // An Npgsql connection string, e.g. "Host=…;Database=fancyauth;Username=fancyauth;Password=…;SSL Mode=Require".
+        private static readonly string ConnectionString = Settings.Required("FANCYAUTH_DB");
+
         public FancyContext()
-            : base("name=FancyContext")
+            : base(ConnectionString)
         {
         }
 

@@ -30,7 +30,7 @@ namespace Fancyauth
             string subCN = null;
             Org.BouncyCastle.X509.X509Certificate bouncyCert = null;
             if (certificates.Length > 0) {
-                var certs = certificates.Select(x => new X509Certificate2(x)).ToArray();
+                var certs = certificates.Select(x => X509CertificateLoader.LoadCertificate(x)).ToArray();
                 var usercert = certs.Last();
                 var chain = new X509Chain();
                 foreach (var cert in certs)

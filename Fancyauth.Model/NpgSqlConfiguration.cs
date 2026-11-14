@@ -4,7 +4,7 @@ using Npgsql;
 
 namespace Fancyauth.Model
 {
-    class NpgSqlConfiguration : DbConfiguration
+    public class NpgSqlConfiguration : DbConfiguration
     {
         public NpgSqlConfiguration ()
         {

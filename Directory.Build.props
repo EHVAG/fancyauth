@@ -1,0 +1,9 @@
+<Project>
+  <!-- Shared by every project: .NET 10, and the versions stay in each Properties/AssemblyInfo.cs. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>
