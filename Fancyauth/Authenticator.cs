@@ -257,6 +257,12 @@ namespace Fancyauth
                 foreach (var kv in info) {
                     switch (kv.Key) {
                     case MumbleServer.UserInfo.UserComment:
+                        // Only members have a place to store a comment. Guests, such as the soundboard bot, keep theirs until they
+                        // disconnect: Mumble shows it before asking for it to be stored, whatever the answer. As in SetTexture.
+                        if (user.Membership == null) {
+                            transact.Rollback();
+                            return Wrapped.AuthenticatorUpdateResult.Failure;
+                        }
                         user.Membership.Comment = kv.Value;
                         break;
                     default:
