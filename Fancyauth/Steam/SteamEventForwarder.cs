@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Data.Entity;
 using System.Threading.Tasks;
 using SteamKit2;
@@ -40,9 +41,9 @@ namespace Fancyauth.Steam
                     steamListener.SendMessage(sender, "Unknown command. Commands are: forward, noforward");
                 else
                 {
-                    // foward to mumble
-		    var mumbleUser = (await Server.GetUsers()).Values.Single(x => x.userid == user.Id);
-		    await Server.SendMessageChannel(mumbleUser.channel, false, user.Name + "(via Steam): " + message);
+                    // forward to mumble; Steam messages are plain text
+                    var mumbleUser = (await Server.GetUsers()).Values.Single(x => x.userid == user.Id);
+                    await ChatRelay.Post(Server, user.Id, mumbleUser.name, mumbleUser.channel, WebUtility.HtmlEncode(message), "Steam");
                 }
 
                 await context.SaveChangesAsync();

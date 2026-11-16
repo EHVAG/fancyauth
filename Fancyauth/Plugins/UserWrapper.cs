@@ -26,6 +26,11 @@ namespace Fancyauth.Plugins
             return steamid.HasValue ? new UserSteamAdapter(SteamListener, steamid.Value) : null;
         }
 
+        Task IUser.RelayChatMessage(string message, string via)
+        {
+            return ChatRelay.Post(Server, User.userid, User.name, User.channel, message, via);
+        }
+
         Task IReadModifyWriteObject.SaveChanges()
         {
             return Server.SetState(User);

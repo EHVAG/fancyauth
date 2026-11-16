@@ -39,6 +39,15 @@ namespace Fancyauth.API
         /// </summary>
         /// <returns>The steam adapter.</returns>
         Task<IUserSteamAdapter> GetSteamAdapter();
+
+        /// <summary>
+        /// Posts a message on this user's behalf in their current channel, for integrations that receive messages elsewhere,
+        /// such as Telegram. Mumble shows it as a server message, "name (via): message", and the chat log records it as this
+        /// user's message, relayed by <paramref name="via"/>. Plugins don't see it, and commands in it don't run.
+        /// </summary>
+        /// <param name="message">The message, as HTML like any Mumble message: escape plain text.</param>
+        /// <param name="via">Where it came from, e.g. "Telegram".</param>
+        Task RelayChatMessage(string message, string via);
     }
 }
 

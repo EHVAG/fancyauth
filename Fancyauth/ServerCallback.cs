@@ -62,8 +62,9 @@ namespace Fancyauth
 
                 if (senderEntity != null)
                 {
+                    // Only what they typed in Mumble: a burst of pictures from Telegram is not spam.
                     var messagesInTheLastSeconds = await context.Logs.OfType<LogEntry.ChatMessage>()
-                        .Where(x => x.Who.Id == senderEntity.Id && x.When > DbFunctions.AddSeconds(DateTimeOffset.Now, -5)).CountAsync();
+                        .Where(x => x.Who.Id == senderEntity.Id && x.Via == null && x.When > DbFunctions.AddSeconds(DateTimeOffset.Now, -5)).CountAsync();
                     if (messagesInTheLastSeconds >= 3)
                         await Server.KickUser(user.session, "Who are you, my evil twin?! [stop spamming]");
                 }

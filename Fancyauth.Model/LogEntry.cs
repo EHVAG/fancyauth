@@ -41,6 +41,12 @@ namespace Fancyauth.Model
         public class ChatMessage : LogEntry
         {
             public string Message { get; set; }
+
+            /// <summary>
+            /// The integration that relayed this message on the user's behalf (IUser.RelayChatMessage), e.g. "Telegram",
+            /// or null if they typed it in Mumble.
+            /// </summary>
+            public string Via { get; set; }
         }
     }
 }
